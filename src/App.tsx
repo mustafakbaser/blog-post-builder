@@ -4,9 +4,21 @@ import PreviewPost from './components/PreviewPost';
 import type { BlogPost, ContentSection } from './types/blog';
 import { Eye, Code, Download, Layout, Settings, Moon, Sun } from 'lucide-react';
 
+const CATEGORIES = [
+  'Yazılım Geliştirme',
+  'Yazılım Prensipleri',
+  'Gelişim',
+  'Sanat & Edebiyat',
+  'Web Geliştirme',
+  'Veri Tabanı',
+  'DevOps'
+];
+
 function App() {
   const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'metadata'>('editor');
   const [darkMode, setDarkMode] = useState(false);
+  const [includeReadTime, setIncludeReadTime] = useState(false);
+  const [customCategory, setCustomCategory] = useState(false);
   const [post, setPost] = useState<BlogPost>({
     id: Date.now(),
     title: 'New Blog Post',
@@ -15,7 +27,7 @@ function App() {
     content: [],
     imageUrl: 'https://via.placeholder.com/1200x600',
     publishedAt: new Date().toISOString(),
-    category: 'General',
+    category: 'Yazılım Geliştirme',
     readTime: 5,
     seo: {
       title: 'New Blog Post',
@@ -25,7 +37,7 @@ function App() {
       publishedAt: new Date().toISOString(),
       modifiedAt: new Date().toISOString(),
       image: 'https://via.placeholder.com/1200x600',
-      section: 'General',
+      section: 'Yazılım Geliştirme',
       tags: []
     }
   });
@@ -40,7 +52,13 @@ function App() {
   }, [darkMode]);
 
   const handleExport = () => {
-    const exportData = JSON.stringify(post, null, 2);
+    // Create export object without readTime if not included
+    const exportPost = includeReadTime ? post : { ...post };
+    if (!includeReadTime) {
+      delete (exportPost as any).readTime;
+    }
+
+    const exportData = JSON.stringify(exportPost, null, 2);
     const blob = new Blob([exportData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -76,6 +94,15 @@ function App() {
     });
   };
 
+  const handleCategoryChange = (value: string) => {
+    if (value === 'custom') {
+      setCustomCategory(true);
+    } else {
+      setCustomCategory(false);
+      setPost({ ...post, category: value, seo: { ...post.seo!, section: value } });
+    }
+  };
+
   return (
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
       <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
@@ -100,8 +127,8 @@ function App() {
               <button
                 onClick={() => setActiveTab('editor')}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'editor'
-                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <Code className="w-4 h-4" />
@@ -110,8 +137,8 @@ function App() {
               <button
                 onClick={() => setActiveTab('metadata')}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'metadata'
-                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <Settings className="w-4 h-4" />
@@ -120,8 +147,8 @@ function App() {
               <button
                 onClick={() => setActiveTab('preview')}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
-                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <Eye className="w-4 h-4" />
@@ -174,6 +201,30 @@ function App() {
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">Basic Information</h3>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">ID</label>
+                        <input
+                          type="number"
+                          value={post.id}
+                          onChange={(e) => setPost({ ...post, id: Number(e.target.value) })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="1"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Slug</label>
+                        <input
+                          type="text"
+                          value={post.slug}
+                          onChange={(e) => setPost({ ...post, slug: e.target.value })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="post-url-slug"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Title</label>
                       <input
@@ -185,28 +236,41 @@ function App() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Slug</label>
-                        <input
-                          type="text"
-                          value={post.slug}
-                          onChange={(e) => setPost({ ...post, slug: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                          placeholder="post-url-slug"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category</label>
-                        <input
-                          type="text"
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category</label>
+                      {customCategory ? (
+                        <div className="flex gap-3">
+                          <input
+                            type="text"
+                            value={post.category}
+                            onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
+                            className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                            placeholder="Enter custom category..."
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => setCustomCategory(false)}
+                            className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <select
                           value={post.category}
-                          onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                          placeholder="DevOps, Frontend, etc."
-                        />
-                      </div>
+                          onChange={(e) => handleCategoryChange(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
+                        >
+                          {CATEGORIES.map(cat => (
+                            <option key={cat} value={cat} className="bg-white dark:bg-gray-800">
+                              {cat}
+                            </option>
+                          ))}
+                          <option value="custom" className="bg-white dark:bg-gray-800 font-semibold text-indigo-600 dark:text-indigo-400">
+                            + Yeni Kategori
+                          </option>
+                        </select>
+                      )}
                     </div>
 
                     <div>
@@ -220,38 +284,53 @@ function App() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Image URL</label>
-                        <input
-                          type="text"
-                          value={post.imageUrl}
-                          onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                          placeholder="https://..."
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Read Time (minutes)</label>
-                        <input
-                          type="number"
-                          value={post.readTime}
-                          onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                          placeholder="5"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Image URL</label>
+                      <input
+                        type="text"
+                        value={post.imageUrl}
+                        onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="https://..."
+                      />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Published At</label>
-                      <input
-                        type="datetime-local"
-                        value={post.publishedAt.slice(0, 16)}
-                        onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                      />
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Published At</label>
+                        <input
+                          type="datetime-local"
+                          value={post.publishedAt.slice(0, 16)}
+                          onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="flex items-center gap-3 mb-3">
+                          <input
+                            type="checkbox"
+                            checked={includeReadTime}
+                            onChange={(e) => setIncludeReadTime(e.target.checked)}
+                            className="w-5 h-5 text-indigo-600 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                          />
+                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Include Read Time</span>
+                        </label>
+                        {includeReadTime && (
+                          <input
+                            type="number"
+                            value={post.readTime}
+                            onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                            placeholder="5"
+                          />
+                        )}
+                        {!includeReadTime && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">
+                            Will be calculated automatically
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
