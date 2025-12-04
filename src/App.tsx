@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Layout, Settings } from 'lucide-react';
+import { Eye, Code, Download, Layout, Settings, Moon, Sun } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'metadata'>('editor');
+  const [darkMode, setDarkMode] = useState(false);
   const [post, setPost] = useState<BlogPost>({
     id: Date.now(),
     title: 'New Blog Post',
@@ -29,6 +30,14 @@ function App() {
     }
   });
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const handleExport = () => {
     const exportData = JSON.stringify(post, null, 2);
@@ -68,211 +77,255 @@ function App() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Top Bar */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <Layout className="w-6 h-6" />
-            <span className="font-bold text-xl">Blog Builder</span>
-          </div>
-          <div className="h-6 w-px bg-gray-200 mx-2"></div>
-          <input
-            type="text"
-            value={post.title}
-            onChange={(e) => setPost({ ...post, title: e.target.value, seo: { ...post.seo!, title: e.target.value } })}
-            className="text-lg font-medium text-gray-800 border-none focus:ring-0 placeholder-gray-400 w-96"
-            placeholder="Enter post title..."
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('editor')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'editor' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-            >
-              <Code className="w-4 h-4" />
-              Editor
-            </button>
-            <button
-              onClick={() => setActiveTab('metadata')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'metadata' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-            >
-              <Settings className="w-4 h-4" />
-              Metadata
-            </button>
-            <button
-              onClick={() => setActiveTab('preview')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'preview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-            >
-              <Eye className="w-4 h-4" />
-              Preview
-            </button>
-          </div>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm text-sm font-medium"
-          >
-            <Download className="w-4 h-4" />
-            Export JSON
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'editor' ? (
-          <Editor
-            sections={post.content}
-            setSections={updateSections}
-            onSelect={setSelectedSectionId}
-            selectedId={selectedSectionId}
-          />
-        ) : activeTab === 'metadata' ? (
-          <div className="h-full overflow-y-auto bg-gray-50 p-8">
-            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8 space-y-8">
-              <h2 className="text-2xl font-bold text-gray-900 border-b pb-4">Post Metadata</h2>
-
-              {/* Basic Info */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800">Basic Information</h3>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Slug</label>
-                    <input
-                      type="text"
-                      value={post.slug}
-                      onChange={(e) => setPost({ ...post, slug: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="post-url-slug"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                    <input
-                      type="text"
-                      value={post.category}
-                      onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="DevOps, Frontend, etc."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Excerpt</label>
-                  <textarea
-                    value={post.excerpt}
-                    onChange={(e) => setPost({ ...post, excerpt: e.target.value, seo: { ...post.seo!, description: e.target.value } })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="A short summary of the post..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-                    <input
-                      type="text"
-                      value={post.imageUrl}
-                      onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Read Time (minutes)</label>
-                    <input
-                      type="number"
-                      value={post.readTime}
-                      onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="5"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Published At</label>
-                  <input
-                    type="datetime-local"
-                    value={post.publishedAt.slice(0, 16)}
-                    onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
+    <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+        {/* Top Bar */}
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-lg z-10">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                <Layout className="w-6 h-6 text-white" />
               </div>
-
-              {/* SEO */}
-              <div className="space-y-6 pt-6 border-t">
-                <h3 className="text-lg font-semibold text-gray-800">SEO Settings</h3>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SEO Title</label>
-                  <input
-                    type="text"
-                    value={post.seo?.title || ''}
-                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, title: e.target.value } })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="SEO optimized title"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SEO Description</label>
-                  <textarea
-                    value={post.seo?.description || ''}
-                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, description: e.target.value } })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="SEO meta description"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
-                  <input
-                    type="text"
-                    value={post.seo?.author || ''}
-                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, author: e.target.value } })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Author name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Keywords (comma separated)</label>
-                  <input
-                    type="text"
-                    value={post.seo?.keywords?.join(', ') || ''}
-                    onChange={(e) => updateKeywords(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Docker, DevOps, Tutorial"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    value={post.seo?.tags?.join(', ') || ''}
-                    onChange={(e) => updateTags(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Docker, Containerization, DevOps"
-                  />
-                </div>
+              <div>
+                <h1 className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  Blog Builder
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Create amazing content</p>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="h-full overflow-y-auto bg-white">
-            <PreviewPost post={post} />
+
+          <div className="flex items-center gap-4">
+            <div className="flex bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl shadow-inner">
+              <button
+                onClick={() => setActiveTab('editor')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'editor'
+                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+              >
+                <Code className="w-4 h-4" />
+                Editor
+              </button>
+              <button
+                onClick={() => setActiveTab('metadata')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'metadata'
+                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+              >
+                <Settings className="w-4 h-4" />
+                Metadata
+              </button>
+              <button
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
+                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </button>
+            </div>
+
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-md"
+              title={darkMode ? 'Light mode' : 'Dark mode'}
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+            </button>
+
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl text-sm font-semibold"
+            >
+              <Download className="w-4 h-4" />
+              Export JSON
+            </button>
           </div>
-        )}
+        </header>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden">
+          {activeTab === 'editor' ? (
+            <Editor
+              sections={post.content}
+              setSections={updateSections}
+              onSelect={setSelectedSectionId}
+              selectedId={selectedSectionId}
+            />
+          ) : activeTab === 'metadata' ? (
+            <div className="h-full overflow-y-auto p-8">
+              <div className="max-w-5xl mx-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 space-y-10 border border-gray-200 dark:border-gray-700">
+                  <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      Post Metadata
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Configure all aspects of your blog post</p>
+                  </div>
+
+                  {/* Basic Info */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full"></div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Basic Information</h3>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Title</label>
+                      <input
+                        type="text"
+                        value={post.title}
+                        onChange={(e) => setPost({ ...post, title: e.target.value, seo: { ...post.seo!, title: e.target.value } })}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Enter your amazing blog post title..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Slug</label>
+                        <input
+                          type="text"
+                          value={post.slug}
+                          onChange={(e) => setPost({ ...post, slug: e.target.value })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="post-url-slug"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category</label>
+                        <input
+                          type="text"
+                          value={post.category}
+                          onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="DevOps, Frontend, etc."
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Excerpt</label>
+                      <textarea
+                        value={post.excerpt}
+                        onChange={(e) => setPost({ ...post, excerpt: e.target.value, seo: { ...post.seo!, description: e.target.value } })}
+                        rows={4}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+                        placeholder="A compelling summary of your post..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Image URL</label>
+                        <input
+                          type="text"
+                          value={post.imageUrl}
+                          onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Read Time (minutes)</label>
+                        <input
+                          type="number"
+                          value={post.readTime}
+                          onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          placeholder="5"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Published At</label>
+                      <input
+                        type="datetime-local"
+                        value={post.publishedAt.slice(0, 16)}
+                        onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* SEO */}
+                  <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full"></div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">SEO Settings</h3>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">SEO Title</label>
+                      <input
+                        type="text"
+                        value={post.seo?.title || ''}
+                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, title: e.target.value } })}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="SEO optimized title"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">SEO Description</label>
+                      <textarea
+                        value={post.seo?.description || ''}
+                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, description: e.target.value } })}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+                        placeholder="SEO meta description"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Author</label>
+                      <input
+                        type="text"
+                        value={post.seo?.author || ''}
+                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, author: e.target.value } })}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Author name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Keywords (comma separated)</label>
+                      <input
+                        type="text"
+                        value={post.seo?.keywords?.join(', ') || ''}
+                        onChange={(e) => updateKeywords(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Docker, DevOps, Tutorial"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tags (comma separated)</label>
+                      <input
+                        type="text"
+                        value={post.seo?.tags?.join(', ') || ''}
+                        onChange={(e) => updateTags(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Docker, Containerization, DevOps"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
+              <PreviewPost post={post} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

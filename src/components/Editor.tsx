@@ -6,11 +6,15 @@ function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string;
     return (
         <button
             onClick={onClick}
-            className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-indigo-50 hover:border-indigo-300 transition-colors w-full text-left"
+            className="group flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 transition-all duration-200 w-full text-left"
         >
-            <Icon className="w-5 h-5 text-gray-500" />
-            <span className="font-medium text-gray-700 flex-1">{label}</span>
-            <Plus className="w-4 h-4 text-indigo-500" />
+            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+                <Icon className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-medium text-gray-700 dark:text-gray-200 flex-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {label}
+            </span>
+            <Plus className="w-4 h-4 text-indigo-500 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
     );
 }
@@ -46,14 +50,20 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
 
     return (
         <div
-            className={`relative group flex items-start gap-3 p-4 bg-white border rounded-lg shadow-sm transition-all cursor-pointer ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}`}
+            className={`relative group flex items-start gap-3 p-5 bg-white dark:bg-gray-800 border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer ${isSelected
+                    ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/50 shadow-lg'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600'
+                }`}
             onClick={onSelect}
         >
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
                 <button
                     onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                     disabled={isFirst}
-                    className={`p-1 rounded hover:bg-gray-100 ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    className={`p-1.5 rounded-lg transition-all ${isFirst
+                            ? 'opacity-20 cursor-not-allowed'
+                            : 'hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+                        }`}
                     title="Move up"
                 >
                     <ChevronUp className="w-4 h-4" />
@@ -61,24 +71,35 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
                 <button
                     onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                     disabled={isLast}
-                    className={`p-1 rounded hover:bg-gray-100 ${isLast ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    className={`p-1.5 rounded-lg transition-all ${isLast
+                            ? 'opacity-20 cursor-not-allowed'
+                            : 'hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+                        }`}
                     title="Move down"
                 >
                     <ChevronDown className="w-4 h-4" />
                 </button>
             </div>
-            <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                    <Icon className="w-4 h-4 text-indigo-500" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{section.type}</span>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                        <Icon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {section.type}
+                    </span>
                 </div>
-                <div className="text-sm text-gray-800 line-clamp-2">
-                    {'content' in section ? (section.content || <span className="text-gray-400 italic">Empty content...</span>) : <span className="text-gray-400 italic">Divider</span>}
+                <div className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 leading-relaxed">
+                    {'content' in section ? (
+                        section.content || <span className="text-gray-400 dark:text-gray-500 italic">Empty content...</span>
+                    ) : (
+                        <span className="text-gray-400 dark:text-gray-500 italic">Divider</span>
+                    )}
                 </div>
             </div>
             <button
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                 title="Delete"
             >
                 <XCircle className="w-5 h-5" />
@@ -89,28 +110,46 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
 
 // Properties Panel Component
 function PropertiesPanel({ section, onChange }: { section: ContentSection | null; onChange: (updated: ContentSection) => void }) {
-    if (!section) return <div className="p-6 text-center text-gray-500">Select an item to edit its properties</div>;
+    if (!section) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4">
+                    <Settings className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">Select an item to edit its properties</p>
+            </div>
+        );
+    }
+
+    const inputClass = "w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500";
+    const labelClass = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2";
 
     return (
-        <div className="p-6 space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-4 capitalize">{section.type} Properties</h3>
+        <div className="p-6 space-y-6 h-full overflow-y-auto">
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent capitalize">
+                    {section.type} Properties
+                </h3>
+            </div>
 
             {'content' in section && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                    <label className={labelClass}>Content</label>
                     {section.type === 'text' || section.type === 'quote' || section.type === 'alert' ? (
                         <textarea
                             value={section.content}
                             onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                            rows={6}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            rows={8}
+                            className={`${inputClass} resize-none`}
+                            placeholder="Enter your content here..."
                         />
                     ) : (
                         <input
                             type="text"
                             value={section.content}
                             onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            className={inputClass}
+                            placeholder="Enter content..."
                         />
                     )}
                 </div>
@@ -118,13 +157,17 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
             {section.type === 'heading' && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Level</label>
+                    <label className={labelClass}>Heading Level</label>
                     <select
                         value={section.level}
                         onChange={(e) => onChange({ ...section, level: Number(e.target.value) as any })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className={inputClass}
                     >
-                        {[1, 2, 3, 4, 5, 6].map(l => <option key={l} value={l}>H{l}</option>)}
+                        {[1, 2, 3, 4, 5, 6].map(l => (
+                            <option key={l} value={l} className="bg-white dark:bg-gray-800">
+                                H{l} - Heading {l}
+                            </option>
+                        ))}
                     </select>
                 </div>
             )}
@@ -132,30 +175,33 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
             {section.type === 'image' && (
                 <>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                        <label className={labelClass}>Image URL</label>
                         <input
                             type="text"
                             value={section.url}
                             onChange={(e) => onChange({ ...section, url: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            className={inputClass}
+                            placeholder="https://example.com/image.jpg"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Alt Text</label>
+                        <label className={labelClass}>Alt Text</label>
                         <input
                             type="text"
                             value={section.alt}
                             onChange={(e) => onChange({ ...section, alt: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            className={inputClass}
+                            placeholder="Describe the image..."
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Caption</label>
+                        <label className={labelClass}>Caption (optional)</label>
                         <input
                             type="text"
                             value={section.caption || ''}
                             onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            className={inputClass}
+                            placeholder="Image caption..."
                         />
                     </div>
                 </>
@@ -163,34 +209,38 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
             {section.type === 'code' && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                    <label className={labelClass}>Programming Language</label>
                     <input
                         type="text"
                         value={section.language}
                         onChange={(e) => onChange({ ...section, language: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className={inputClass}
+                        placeholder="javascript, python, etc."
                     />
                 </div>
             )}
 
             {section.type === 'alert' && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Variant</label>
+                    <label className={labelClass}>Alert Type</label>
                     <select
                         value={section.variant}
                         onChange={(e) => onChange({ ...section, variant: e.target.value as any })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className={inputClass}
                     >
-                        <option value="info">Info</option>
-                        <option value="warning">Warning</option>
-                        <option value="success">Success</option>
-                        <option value="error">Error</option>
+                        <option value="info" className="bg-white dark:bg-gray-800">Info</option>
+                        <option value="warning" className="bg-white dark:bg-gray-800">Warning</option>
+                        <option value="success" className="bg-white dark:bg-gray-800">Success</option>
+                        <option value="error" className="bg-white dark:bg-gray-800">Error</option>
                     </select>
                 </div>
             )}
         </div>
     );
 }
+
+// Import Settings icon
+import { Settings } from 'lucide-react';
 
 export default function Editor({ sections, setSections, onSelect, selectedId }: { sections: ContentSection[]; setSections: (s: ContentSection[]) => void; onSelect: (id: string | null) => void; selectedId: string | null }) {
 
@@ -249,12 +299,14 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const selectedSection = selectedIndex >= 0 ? sections[selectedIndex] : null;
 
     return (
-        <div className="flex h-screen bg-gray-100 overflow-hidden">
+        <div className="flex h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
             {/* Sidebar */}
-            <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-bold text-gray-800">Components</h2>
-                    <p className="text-xs text-gray-500 mt-1">Click to add</p>
+            <div className="w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-xl">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        Components
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Click to add to canvas</p>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     <SidebarItem icon={Type} label="Text" onClick={() => addSection('text')} />
@@ -272,12 +324,18 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
 
             {/* Canvas */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="p-4 border-b border-gray-200 bg-white flex justify-between items-center">
-                    <h2 className="text-lg font-bold text-gray-800">Canvas</h2>
-                    <div className="text-sm text-gray-500">Click components to add them</div>
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex justify-between items-center shadow-sm">
+                    <div>
+                        <h2 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                            Canvas
+                        </h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {sections.length} {sections.length === 1 ? 'component' : 'components'}
+                        </p>
+                    </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
-                    <div className="max-w-2xl mx-auto space-y-4 min-h-[500px]">
+                <div className="flex-1 overflow-y-auto p-8">
+                    <div className="max-w-3xl mx-auto space-y-4">
                         {sections.map((section, index) => (
                             <CanvasItem
                                 key={`section-${index}`}
@@ -292,8 +350,16 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                             />
                         ))}
                         {sections.length === 0 && (
-                            <div className="text-center text-gray-400 py-20 border-2 border-dashed border-gray-300 rounded-xl">
-                                Click components from the sidebar to start building your post
+                            <div className="text-center py-24 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+                                <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <Code className="w-8 h-8 text-white" />
+                                </div>
+                                <p className="text-gray-400 dark:text-gray-500 font-medium text-lg">
+                                    Click components from the sidebar to start
+                                </p>
+                                <p className="text-gray-400 dark:text-gray-600 text-sm mt-2">
+                                    Build your blog post visually
+                                </p>
                             </div>
                         )}
                     </div>
@@ -301,15 +367,21 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             </div>
 
             {/* Properties Panel */}
-            <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+            <div className="w-96 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-l border-gray-200 dark:border-gray-700 flex flex-col shadow-xl">
                 {selectedSection ? (
                     <PropertiesPanel
                         section={selectedSection}
                         onChange={(updated) => updateSection(selectedIndex, updated)}
                     />
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-400 p-8 text-center">
-                        Select a component on the canvas to edit its properties
+                    <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 p-8 text-center">
+                        <div>
+                            <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                <Settings className="w-8 h-8 text-white" />
+                            </div>
+                            <p className="font-medium">Select a component</p>
+                            <p className="text-sm mt-2">to edit its properties</p>
+                        </div>
                     </div>
                 )}
             </div>
