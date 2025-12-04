@@ -58,7 +58,29 @@ function App() {
       delete (exportPost as any).readTime;
     }
 
-    const exportData = JSON.stringify(exportPost, null, 2);
+    // Convert to JSON string
+    let exportData = JSON.stringify(exportPost, null, 2);
+
+    // Replace double quotes with single quotes
+    exportData = exportData.replace(/"([^"]+)":/g, "$1:");  // Remove quotes from keys
+    exportData = exportData.replace(/: "([^"]*)"/g, ": '$1'");  // Replace double quotes with single quotes in values
+    exportData = exportData.replace(/\[(\s*)"([^"]*)"/g, "[$1'$2'");  // Arrays first element
+    exportData = exportData.replace(/,(\s*)"([^"]*)"/g, ",$1'$2'");  // Arrays other elements
+
+    // Add readTime getter if not included
+    if (!includeReadTime) {
+      // Find the closing brace before the last one and add the getter
+      const lines = exportData.split('\n');
+      const lastBraceIndex = lines.length - 1;
+
+      // Insert getter before the last closing brace
+      lines.splice(lastBraceIndex, 0, '  get readTime() {');
+      lines.splice(lastBraceIndex + 1, 0, '    return calculateReadingTime(this.content);');
+      lines.splice(lastBraceIndex + 2, 0, '  }');
+
+      exportData = lines.join('\n');
+    }
+
     const blob = new Blob([exportData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
