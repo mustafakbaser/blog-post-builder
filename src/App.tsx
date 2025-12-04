@@ -19,6 +19,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [includeReadTime, setIncludeReadTime] = useState(false);
   const [customCategory, setCustomCategory] = useState(false);
+  const [keywordsInput, setKeywordsInput] = useState('');
+  const [tagsInput, setTagsInput] = useState('');
   const [post, setPost] = useState<BlogPost>({
     id: Date.now(),
     title: 'New Blog Post',
@@ -52,8 +54,21 @@ function App() {
   }, [darkMode]);
 
   const handleExport = () => {
-    // Create export object without readTime if not included
-    const exportPost = includeReadTime ? post : { ...post };
+    // Convert keywords and tags from input strings to arrays
+    const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
+    const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
+
+    // Create export object with updated keywords and tags
+    const exportPost = {
+      ...post,
+      seo: {
+        ...post.seo!,
+        keywords,
+        tags
+      }
+    };
+
+    // Remove readTime if not included
     if (!includeReadTime) {
       delete (exportPost as any).readTime;
     }
@@ -64,8 +79,9 @@ function App() {
     // Replace double quotes with single quotes
     exportData = exportData.replace(/"([^"]+)":/g, "$1:");  // Remove quotes from keys
     exportData = exportData.replace(/: "([^"]*)"/g, ": '$1'");  // Replace double quotes with single quotes in values
-    exportData = exportData.replace(/\[(\s*)"([^"]*)"/g, "[$1'$2'");  // Arrays first element
-    exportData = exportData.replace(/,(\s*)"([^"]*)"/g, ",$1'$2'");  // Arrays other elements
+    // Fix all quotes in arrays (handles multiple elements)
+    exportData = exportData.replace(/"([^"]*?)"/g, "'$1'");  // Replace remaining double quotes with single quotes
+
 
     // Add readTime getter if not included
     if (!includeReadTime) {
@@ -101,19 +117,11 @@ function App() {
   };
 
   const updateKeywords = (value: string) => {
-    const keywords = value.split(',').map(k => k.trim()).filter(k => k);
-    setPost({
-      ...post,
-      seo: { ...post.seo!, keywords }
-    });
+    setKeywordsInput(value);
   };
 
   const updateTags = (value: string) => {
-    const tags = value.split(',').map(t => t.trim()).filter(t => t);
-    setPost({
-      ...post,
-      seo: { ...post.seo!, tags }
-    });
+    setTagsInput(value);
   };
 
   const handleCategoryChange = (value: string) => {
@@ -400,7 +408,7 @@ function App() {
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Keywords (comma separated)</label>
                       <input
                         type="text"
-                        value={post.seo?.keywords?.join(', ') || ''}
+                        value={keywordsInput}
                         onChange={(e) => updateKeywords(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Docker, DevOps, Tutorial"
@@ -411,7 +419,7 @@ function App() {
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tags (comma separated)</label>
                       <input
                         type="text"
-                        value={post.seo?.tags?.join(', ') || ''}
+                        value={tagsInput}
                         onChange={(e) => updateTags(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Docker, Containerization, DevOps"
