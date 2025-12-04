@@ -302,11 +302,10 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         <div className="flex h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
             {/* Sidebar */}
             <div className="w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-xl">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                    <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                         Components
                     </h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Click to add to canvas</p>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     <SidebarItem icon={Type} label="Text" onClick={() => addSection('text')} />
@@ -324,14 +323,14 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
 
             {/* Canvas */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex justify-between items-center shadow-sm">
-                    <div>
-                        <h2 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                             Canvas
                         </h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {sections.length} {sections.length === 1 ? 'component' : 'components'}
-                        </p>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                            {sections.length}
+                        </span>
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-8">
