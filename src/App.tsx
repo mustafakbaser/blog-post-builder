@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Layout, Settings, Moon, Sun } from 'lucide-react';
+import { Eye, Code, Download, Settings, Moon, Sun } from 'lucide-react';
 
 const CATEGORIES = [
   'Yazılım Geliştirme',
@@ -148,9 +148,7 @@ function App() {
         <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-lg z-10">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
-                <Layout className="w-6 h-6 text-white" />
-              </div>
+              <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-8 h-8" />
               <div>
                 <h1 className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
                   Blog Builder
