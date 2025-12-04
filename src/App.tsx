@@ -16,7 +16,10 @@ const CATEGORIES = [
 
 function App() {
   const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'metadata'>('editor');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved === 'true';
+  });
   const [includeReadTime, setIncludeReadTime] = useState(false);
   const [customCategory, setCustomCategory] = useState(false);
   const [keywordsInput, setKeywordsInput] = useState('');
@@ -51,6 +54,7 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
 
   const handleExport = () => {
