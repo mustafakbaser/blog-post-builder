@@ -74,11 +74,11 @@ export interface BlogPost {
     id: number;
     title: string;
     slug: string;
+    category: string;
     excerpt: string;
     content: ContentSection[];
     imageUrl: string;
     publishedAt: string;
-    category: string;
     readTime: number;
     seo?: {
         title: string;

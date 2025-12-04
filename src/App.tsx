@@ -60,7 +60,15 @@ function App() {
 
     // Create export object with updated keywords and tags
     const exportPost = {
-      ...post,
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      category: post.category,
+      excerpt: post.excerpt,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      publishedAt: post.publishedAt,
+      readTime: post.readTime,
       seo: {
         ...post.seo!,
         keywords,
