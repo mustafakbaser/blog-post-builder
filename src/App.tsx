@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
 import ConfirmDialog from './components/ConfirmDialog';
+import Toast from './components/Toast';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw } from 'lucide-react';
+import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw, Upload } from 'lucide-react';
 import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './utils/localStorage';
 import { useAutoSave } from './hooks/useAutoSave';
+import { parseImportedFile, extractMetadata } from './utils/importExport';
 
 const CATEGORIES = [
   'Yazılım Geliştirme',
@@ -79,6 +81,8 @@ function App() {
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (darkMode) {
@@ -117,6 +121,46 @@ function App() {
     setSelectedSectionId(null);
   };
 
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedPost = await parseImportedFile(file);
+
+      if (!importedPost) {
+        throw new Error('Invalid blog post data');
+      }
+
+      const { keywords, tags } = extractMetadata(importedPost);
+
+      // Update all state with imported data
+      setPost(importedPost);
+      setKeywordsInput(keywords);
+      setTagsInput(tags);
+
+      // Check if readTime exists in imported data
+      if (importedPost.readTime !== undefined) {
+        setIncludeReadTime(true);
+      }
+
+      // Auto-save will trigger and persist to localStorage
+      setToast({ message: 'Blog post imported successfully!', type: 'success' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setToast({ message: `Failed to import: ${errorMessage}`, type: 'error' });
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerImport = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleExport = () => {
     // Convert keywords and tags from input strings to arrays
     const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
@@ -148,26 +192,41 @@ function App() {
     // Convert to JSON string
     let exportData = JSON.stringify(exportPost, null, 2);
 
+    // Debug: Log export data before modifications
+    console.log('📤 Export data (valid JSON):', exportData.substring(0, 200));
+
+    // COMMENTED OUT: These modifications break JSON format
     // Replace double quotes with single quotes
-    exportData = exportData.replace(/"([^"]+)":/g, "$1:");  // Remove quotes from keys
-    exportData = exportData.replace(/: "([^"]*)"/g, ": '$1'");  // Replace double quotes with single quotes in values
+    // exportData = exportData.replace(/"([^"]+)":/g, "$1:");  // Remove quotes from keys
+    // exportData = exportData.replace(/: "([^"]*)"/g, ": '$1'");  // Replace double quotes with single quotes in values
     // Fix all quotes in arrays (handles multiple elements)
-    exportData = exportData.replace(/"([^"]*?)"/g, "'$1'");  // Replace remaining double quotes with single quotes
+    // exportData = exportData.replace(/"([^"]*?)"/g, "'$1'");  // Replace remaining double quotes with single quotes
 
 
+    // COMMENTED OUT: Getter functions are not valid JSON
     // Add readTime getter if not included
-    if (!includeReadTime) {
-      // Find the closing brace before the last one and add the getter
-      const lines = exportData.split('\n');
-      const lastBraceIndex = lines.length - 1;
+    // if (!includeReadTime) {
+    //   // Find the closing brace before the last one and add the getter
+    //   const lines = exportData.split('\n');
+    //   const lastBraceIndex = lines.length - 1;
 
-      // Insert getter before the last closing brace
-      lines.splice(lastBraceIndex, 0, '  get readTime() {');
-      lines.splice(lastBraceIndex + 1, 0, '    return calculateReadingTime(this.content);');
-      lines.splice(lastBraceIndex + 2, 0, '  }');
+    //   // Insert getter before the last closing brace
+    //   lines.splice(lastBraceIndex, 0, '  get readTime() {');
+    //   lines.splice(lastBraceIndex + 1, 0, '    return calculateReadingTime(this.content);');
+    //   lines.splice(lastBraceIndex + 2, 0, '  }');
 
-      exportData = lines.join('\n');
-    }
+    //   exportData = lines.join('\n');
+    // }
+
+    console.log('📤 Final export data (first 500 chars):', exportData.substring(0, 500));
+    console.log('✅ Export data is valid JSON:', (() => {
+      try {
+        JSON.parse(exportData);
+        return true;
+      } catch {
+        return false;
+      }
+    })());
 
     const blob = new Blob([exportData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -207,6 +266,15 @@ function App() {
 
   return (
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Reset Confirmation Dialog */}
       <ConfirmDialog
         isOpen={showResetDialog}
@@ -286,6 +354,22 @@ function App() {
             >
               <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
+
+            {/* Import Button */}
+            <button
+              onClick={triggerImport}
+              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+              title="Import JSON"
+            >
+              <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
 
             {/* Export Button */}
             <button
