@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ContentSection } from '../types/blog';
-import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2, PanelLeftOpen, PanelRightOpen, X } from 'lucide-react';
+import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2, PanelLeftOpen, PanelRightOpen, X, Copy } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 // Sidebar Item Component - Click to add
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
@@ -21,9 +22,10 @@ function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string;
 }
 
 // Canvas Item Component
-function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelected, isFirst, isLast }: {
+function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMoveDown, isSelected, isFirst, isLast }: {
     section: ContentSection;
     onDelete: () => void;
+    onDuplicate: () => void;
     onSelect: () => void;
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -72,8 +74,8 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
     return (
         <div
             className={`relative group flex items-start gap-3 p-4 bg-white dark:bg-slate-800 border rounded-lg transition-all cursor-pointer ${isSelected
-                    ? 'border-indigo-500 dark:border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900/50 shadow-md'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm'
+                ? 'border-indigo-500 dark:border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900/50 shadow-md'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm'
                 }`}
             onClick={onSelect}
         >
@@ -83,8 +85,8 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
                     onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                     disabled={isFirst}
                     className={`p-1 rounded transition-colors ${isFirst
-                            ? 'opacity-20 cursor-not-allowed'
-                            : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        ? 'opacity-20 cursor-not-allowed'
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                     title="Move up"
                 >
@@ -94,8 +96,8 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
                     onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                     disabled={isLast}
                     className={`p-1 rounded transition-colors ${isLast
-                            ? 'opacity-20 cursor-not-allowed'
-                            : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        ? 'opacity-20 cursor-not-allowed'
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                     title="Move down"
                 >
@@ -123,14 +125,23 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
                 </div>
             </div>
 
-            {/* Delete Button */}
-            <button
-                onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all"
-                title="Delete"
-            >
-                <XCircle className="w-5 h-5" />
-            </button>
+            {/* Actions */}
+            <div className="flex flex-row gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+                    className="p-1.5 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded transition-all"
+                    title="Duplicate"
+                >
+                    <Copy className="w-5 h-5" />
+                </button>
+                <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all"
+                    title="Delete"
+                >
+                    <XCircle className="w-5 h-5" />
+                </button>
+            </div>
         </div>
     );
 }
@@ -139,18 +150,21 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
 function PropertiesPanel({ section, onChange }: { section: ContentSection | null; onChange: (updated: ContentSection) => void }) {
     if (!section) {
         return (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-xl mb-4">
-                    <Settings className="w-8 h-8 text-slate-500 dark:text-slate-400" />
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm mb-4 border border-slate-100 dark:border-slate-700">
+                    <Settings className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Select an item to edit its properties</p>
+                <h3 className="text-slate-900 dark:text-white font-semibold mb-1">No Selection</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[200px]">Select an element from the canvas to customize its styling and content</p>
             </div>
         );
     }
 
-    const inputClass = "w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white text-sm";
-    const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5";
+    const inputClass = "w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-slate-900 dark:text-white text-sm shadow-sm";
+    const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 ml-0.5";
     const sectionTitleClass = "text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3";
+
+
 
     // List helpers
     const updateListItem = (index: number, value: string) => {
@@ -214,435 +228,419 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     };
 
     return (
-        <div className="p-5 space-y-5 h-full overflow-y-auto">
-            <div className="border-b border-slate-200 dark:border-slate-700 pb-4">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white capitalize">
-                    {section.type} Properties
-                </h3>
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
+            {/* Header */}
+            <div className="flex-none px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                        <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-slate-900 dark:text-white capitalize">
+                            {section.type} Properties
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Configure visual appearance</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Text, Code, Heading content */}
-            {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
-                <div>
-                    <label className={labelClass}>Content</label>
-                    <textarea
-                        value={section.content}
-                        onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                        rows={section.type === 'code' ? 8 : 4}
-                        className={`${inputClass} resize-none font-mono`}
-                        placeholder="Enter your content here..."
-                    />
-                </div>
-            )}
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
 
-            {/* Heading Level */}
-            {section.type === 'heading' && (
-                <div>
-                    <label className={labelClass}>Heading Level</label>
-                    <select
-                        value={section.level}
-                        onChange={(e) => onChange({ ...section, level: Number(e.target.value) as any })}
-                        className={inputClass}
-                    >
-                        {[1, 2, 3, 4, 5, 6].map(l => (
-                            <option key={l} value={l} className="bg-white dark:bg-slate-800">
-                                H{l} - Heading {l}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
+                {/* Text, Code, Heading content - Expanded for Text/Code */}
+                {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
+                    <div className={section.type !== 'heading' ? "flex flex-col h-full gap-2" : "space-y-4"}>
+                        <div className={section.type !== 'heading' ? "flex-1 flex flex-col min-h-[300px]" : ""}>
+                            <label className={labelClass}>Content</label>
+                            <textarea
+                                value={section.content}
+                                onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
+                                className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none' : ''}`}
+                                rows={section.type === 'heading' ? 3 : undefined}
+                                placeholder="Enter your content here..."
+                            />
+                        </div>
+                    </div>
+                )}
 
-            {/* Image */}
-            {section.type === 'image' && (
-                <>
+                {/* Heading Level - Standard */}
+                {section.type === 'heading' && (
                     <div>
-                        <label className={labelClass}>Image URL</label>
-                        <input
-                            type="text"
-                            value={section.url}
-                            onChange={(e) => onChange({ ...section, url: e.target.value })}
-                            className={inputClass}
-                            placeholder="https://example.com/image.jpg"
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>Alt Text</label>
-                        <input
-                            type="text"
-                            value={section.alt}
-                            onChange={(e) => onChange({ ...section, alt: e.target.value })}
-                            className={inputClass}
-                            placeholder="Describe the image..."
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>Caption (optional)</label>
-                        <input
-                            type="text"
-                            value={section.caption || ''}
-                            onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                            className={inputClass}
-                            placeholder="Image caption..."
-                        />
-                    </div>
-                </>
-            )}
-
-            {/* Code Language */}
-            {section.type === 'code' && (
-                <div>
-                    <label className={labelClass}>Programming Language</label>
-                    <select
-                        value={section.language}
-                        onChange={(e) => onChange({ ...section, language: e.target.value })}
-                        className={inputClass}
-                    >
-                        <optgroup label="Web Development">
-                            <option value="javascript">JavaScript</option>
-                            <option value="typescript">TypeScript</option>
-                            <option value="html">HTML</option>
-                            <option value="css">CSS</option>
-                            <option value="scss">SCSS / Sass</option>
-                            <option value="jsx">JSX (React)</option>
-                            <option value="tsx">TSX (React + TS)</option>
-                            <option value="vue">Vue</option>
-                            <option value="svelte">Svelte</option>
-                            <option value="php">PHP</option>
-                        </optgroup>
-                        <optgroup label="Backend / General Purpose">
-                            <option value="python">Python</option>
-                            <option value="java">Java</option>
-                            <option value="csharp">C#</option>
-                            <option value="cpp">C++</option>
-                            <option value="c">C</option>
-                            <option value="go">Go</option>
-                            <option value="rust">Rust</option>
-                            <option value="ruby">Ruby</option>
-                            <option value="kotlin">Kotlin</option>
-                            <option value="scala">Scala</option>
-                            <option value="swift">Swift</option>
-                            <option value="dart">Dart</option>
-                        </optgroup>
-                        <optgroup label="Database & Query">
-                            <option value="sql">SQL</option>
-                            <option value="mysql">MySQL</option>
-                            <option value="postgresql">PostgreSQL</option>
-                            <option value="mongodb">MongoDB</option>
-                            <option value="graphql">GraphQL</option>
-                        </optgroup>
-                        <optgroup label="Shell & DevOps">
-                            <option value="bash">Bash / Shell</option>
-                            <option value="powershell">PowerShell</option>
-                            <option value="dockerfile">Dockerfile</option>
-                            <option value="yaml">YAML</option>
-                            <option value="nginx">Nginx</option>
-                            <option value="apache">Apache</option>
-                        </optgroup>
-                        <optgroup label="Data & Config">
-                            <option value="json">JSON</option>
-                            <option value="xml">XML</option>
-                            <option value="toml">TOML</option>
-                            <option value="ini">INI</option>
-                            <option value="env">ENV</option>
-                        </optgroup>
-                        <optgroup label="Markup & Documentation">
-                            <option value="markdown">Markdown</option>
-                            <option value="latex">LaTeX</option>
-                            <option value="plaintext">Plain Text</option>
-                        </optgroup>
-                        <optgroup label="Other Languages">
-                            <option value="r">R</option>
-                            <option value="matlab">MATLAB</option>
-                            <option value="julia">Julia</option>
-                            <option value="perl">Perl</option>
-                            <option value="lua">Lua</option>
-                            <option value="haskell">Haskell</option>
-                            <option value="elixir">Elixir</option>
-                            <option value="clojure">Clojure</option>
-                            <option value="fsharp">F#</option>
-                            <option value="assembly">Assembly</option>
-                            <option value="solidity">Solidity</option>
-                        </optgroup>
-                    </select>
-                </div>
-            )}
-
-            {/* Quote */}
-            {section.type === 'quote' && (
-                <>
-                    <div>
-                        <label className={labelClass}>Quote Text</label>
-                        <textarea
-                            value={section.content}
-                            onChange={(e) => onChange({ ...section, content: e.target.value })}
-                            rows={4}
-                            className={`${inputClass} resize-none`}
-                            placeholder="Enter the quote..."
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>Author (optional)</label>
-                        <input
-                            type="text"
-                            value={section.author || ''}
-                            onChange={(e) => onChange({ ...section, author: e.target.value })}
-                            className={inputClass}
-                            placeholder="Who said this?"
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>Source (optional)</label>
-                        <input
-                            type="text"
-                            value={section.source || ''}
-                            onChange={(e) => onChange({ ...section, source: e.target.value })}
-                            className={inputClass}
-                            placeholder="Book, article, etc."
-                        />
-                    </div>
-                </>
-            )}
-
-            {/* Alert */}
-            {section.type === 'alert' && (
-                <>
-                    <div>
-                        <label className={labelClass}>Alert Content</label>
-                        <textarea
-                            value={section.content}
-                            onChange={(e) => onChange({ ...section, content: e.target.value })}
-                            rows={3}
-                            className={`${inputClass} resize-none`}
-                            placeholder="Alert message..."
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>Alert Type</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {(['info', 'success', 'warning', 'error'] as const).map(variant => (
+                        <label className={labelClass}>Heading Level</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[1, 2, 3, 4, 5, 6].map(l => (
                                 <button
-                                    key={variant}
-                                    onClick={() => onChange({ ...section, variant })}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
-                                        section.variant === variant
-                                            ? variant === 'info' ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
-                                            : variant === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
-                                            : variant === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
-                                            : 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
-                                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                    }`}
+                                    key={l}
+                                    onClick={() => onChange({ ...section, level: l as any })}
+                                    className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${section.level === l
+                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300'
+                                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600'
+                                        }`}
                                 >
-                                    {variant.charAt(0).toUpperCase() + variant.slice(1)}
+                                    H{l}
                                 </button>
                             ))}
                         </div>
                     </div>
-                </>
-            )}
+                )}
 
-            {/* Link */}
-            {section.type === 'link' && (
-                <>
-                    <div>
-                        <label className={labelClass}>Link Text</label>
-                        <input
-                            type="text"
-                            value={section.content}
-                            onChange={(e) => onChange({ ...section, content: e.target.value })}
-                            className={inputClass}
-                            placeholder="Click here"
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>URL</label>
-                        <input
-                            type="text"
-                            value={section.url}
-                            onChange={(e) => onChange({ ...section, url: e.target.value })}
-                            className={inputClass}
-                            placeholder="https://example.com"
-                        />
-                    </div>
-                </>
-            )}
-
-            {/* List */}
-            {section.type === 'list' && (
-                <>
-                    <div>
-                        <label className={labelClass}>List Type</label>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => onChange({ ...section, ordered: false })}
-                                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
-                                    !section.ordered
-                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                • Unordered
-                            </button>
-                            <button
-                                onClick={() => onChange({ ...section, ordered: true })}
-                                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
-                                    section.ordered
-                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                1. Ordered
-                            </button>
+                {/* Image */}
+                {section.type === 'image' && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className={labelClass}>Image URL</label>
+                            <input
+                                type="text"
+                                value={section.url}
+                                onChange={(e) => onChange({ ...section, url: e.target.value })}
+                                className={inputClass}
+                                placeholder="https://example.com/image.jpg"
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Alt Text</label>
+                            <input
+                                type="text"
+                                value={section.alt}
+                                onChange={(e) => onChange({ ...section, alt: e.target.value })}
+                                className={inputClass}
+                                placeholder="Describe the image..."
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Caption (optional)</label>
+                            <input
+                                type="text"
+                                value={section.caption || ''}
+                                onChange={(e) => onChange({ ...section, caption: e.target.value })}
+                                className={inputClass}
+                                placeholder="Image caption..."
+                            />
                         </div>
                     </div>
+                )}
+
+                {/* Code Language */}
+                {section.type === 'code' && (
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className={labelClass.replace('mb-1.5', '')}>List Items</label>
-                            <button
-                                onClick={addListItem}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
-                            >
-                                <Plus className="w-3 h-3" /> Add Item
-                            </button>
+                        <label className={labelClass}>Programming Language</label>
+                        <select
+                            value={section.language}
+                            onChange={(e) => onChange({ ...section, language: e.target.value })}
+                            className={inputClass}
+                        >
+                            <optgroup label="Web Development">
+                                <option value="javascript">JavaScript</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="jsx">JSX (React)</option>
+                                <option value="tsx">TSX (React + TS)</option>
+                            </optgroup>
+                            <optgroup label="Common">
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                                <option value="csharp">C#</option>
+                                <option value="go">Go</option>
+                                <option value="rust">Rust</option>
+                                <option value="sql">SQL</option>
+                                <option value="bash">Bash</option>
+                                <option value="json">JSON</option>
+                                <option value="markdown">Markdown</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                )}
+
+                {/* Quote */}
+                {section.type === 'quote' && (
+                    <div className="flex flex-col h-full gap-4">
+                        <div className="flex-1 flex flex-col min-h-[150px]">
+                            <label className={labelClass}>Quote Text</label>
+                            <textarea
+                                value={section.content}
+                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                className={`${inputClass} flex-1 resize-none`}
+                                placeholder="Enter the quote..."
+                            />
                         </div>
-                        <div className="space-y-2">
-                            {section.items.map((item, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <span className="flex items-center justify-center w-6 text-xs text-slate-400 dark:text-slate-500 font-medium">
-                                        {section.ordered ? `${index + 1}.` : '•'}
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={item}
-                                        onChange={(e) => updateListItem(index, e.target.value)}
-                                        className={`${inputClass} flex-1`}
-                                        placeholder={`Item ${index + 1}`}
-                                    />
+                        <div className="space-y-4 flex-none">
+                            <div>
+                                <label className={labelClass}>Author (optional)</label>
+                                <input
+                                    type="text"
+                                    value={section.author || ''}
+                                    onChange={(e) => onChange({ ...section, author: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="Who said this?"
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Source (optional)</label>
+                                <input
+                                    type="text"
+                                    value={section.source || ''}
+                                    onChange={(e) => onChange({ ...section, source: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="Book, article, etc."
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Alert */}
+                {section.type === 'alert' && (
+                    <div className="flex flex-col h-full gap-4">
+                        <div className="flex-1 flex flex-col min-h-[150px]">
+                            <label className={labelClass}>Alert Content</label>
+                            <textarea
+                                value={section.content}
+                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                className={`${inputClass} flex-1 resize-none`}
+                                placeholder="Alert message..."
+                            />
+                        </div>
+                        <div className="flex-none">
+                            <label className={labelClass}>Alert Type</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['info', 'success', 'warning', 'error'] as const).map(variant => (
                                     <button
-                                        onClick={() => removeListItem(index)}
-                                        className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
-                                        title="Remove item"
+                                        key={variant}
+                                        onClick={() => onChange({ ...section, variant })}
+                                        className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${section.variant === variant
+                                            ? variant === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300 ring-1 ring-blue-500/20'
+                                                : variant === 'success' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-400 dark:text-emerald-300 ring-1 ring-emerald-500/20'
+                                                    : variant === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:border-amber-400 dark:text-amber-300 ring-1 ring-amber-500/20'
+                                                        : 'bg-red-50 border-red-500 text-red-700 dark:bg-red-900/30 dark:border-red-400 dark:text-red-300 ring-1 ring-red-500/20'
+                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                            }`}
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        {variant.charAt(0).toUpperCase() + variant.slice(1)}
                                     </button>
-                                </div>
-                            ))}
-                            {section.items.length === 0 && (
-                                <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">
-                                    No items yet. Click "Add Item" to start.
-                                </p>
-                            )}
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </>
-            )}
+                )}
 
-            {/* Table */}
-            {section.type === 'table' && (
-                <>
-                    <div>
-                        <label className={labelClass}>Table Caption (optional)</label>
-                        <input
-                            type="text"
-                            value={section.caption || ''}
-                            onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                            className={inputClass}
-                            placeholder="Table description..."
-                        />
-                    </div>
-
-                    {/* Headers */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className={sectionTitleClass.replace('mb-3', '')}>Columns ({section.headers.length})</span>
-                            <button
-                                onClick={addTableColumn}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
-                            >
-                                <Plus className="w-3 h-3" /> Add Column
-                            </button>
+                {/* Link */}
+                {section.type === 'link' && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className={labelClass}>Link Text</label>
+                            <input
+                                type="text"
+                                value={section.content}
+                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                className={inputClass}
+                                placeholder="Click here"
+                            />
                         </div>
-                        <div className="space-y-2">
-                            {section.headers.map((header, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={header}
-                                        onChange={(e) => updateTableHeader(index, e.target.value)}
-                                        className={`${inputClass} flex-1`}
-                                        placeholder={`Header ${index + 1}`}
-                                    />
-                                    {section.headers.length > 1 && (
+                        <div>
+                            <label className={labelClass}>URL</label>
+                            <input
+                                type="text"
+                                value={section.url}
+                                onChange={(e) => onChange({ ...section, url: e.target.value })}
+                                className={inputClass}
+                                placeholder="https://example.com"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* List */}
+                {section.type === 'list' && (
+                    <div className="space-y-6">
+                        <div>
+                            <label className={labelClass}>List Type</label>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => onChange({ ...section, ordered: false })}
+                                    className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${!section.ordered
+                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 ring-1 ring-indigo-500/20'
+                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                        }`}
+                                >
+                                    • Unordered
+                                </button>
+                                <button
+                                    onClick={() => onChange({ ...section, ordered: true })}
+                                    className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${section.ordered
+                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 ring-1 ring-indigo-500/20'
+                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                        }`}
+                                >
+                                    1. Ordered
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className={labelClass.replace('mb-1.5', '')}>List Items</label>
+                                <button
+                                    onClick={addListItem}
+                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-2.5">
+                                {section.items.map((item, index) => (
+                                    <div key={index} className="flex gap-2 items-center group">
+                                        <span className="flex-none flex items-center justify-center w-6 text-sm text-slate-400 dark:text-slate-500 font-medium">
+                                            {section.ordered ? `${index + 1}.` : '•'}
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={item}
+                                            onChange={(e) => updateListItem(index, e.target.value)}
+                                            className={`${inputClass} flex-1`}
+                                            placeholder={`Item ${index + 1}`}
+                                        />
                                         <button
-                                            onClick={() => removeTableColumn(index)}
-                                            className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
-                                            title="Remove column"
+                                            onClick={() => removeListItem(index)}
+                                            className="flex-none p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                            title="Remove item"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
-                                    )}
-                                </div>
-                            ))}
+                                    </div>
+                                ))}
+                                {section.items.length === 0 && (
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-center">
+                                        <p className="text-sm text-slate-400 dark:text-slate-500">
+                                            No items yet.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+                )}
 
-                    {/* Rows */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className={sectionTitleClass.replace('mb-3', '')}>Rows ({section.rows.length})</span>
-                            <button
-                                onClick={addTableRow}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
-                            >
-                                <Plus className="w-3 h-3" /> Add Row
-                            </button>
+                {/* Table */}
+                {section.type === 'table' && (
+                    <div className="space-y-6">
+                        <div>
+                            <label className={labelClass}>Table Caption (optional)</label>
+                            <input
+                                type="text"
+                                value={section.caption || ''}
+                                onChange={(e) => onChange({ ...section, caption: e.target.value })}
+                                className={inputClass}
+                                placeholder="Table description..."
+                            />
                         </div>
-                        <div className="space-y-3">
-                            {section.rows.map((row, rowIndex) => (
-                                <div key={rowIndex} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Row {rowIndex + 1}</span>
+
+                        {/* Headers */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className={sectionTitleClass.replace('mb-3', '')}>Columns ({section.headers.length})</span>
+                                <button
+                                    onClick={addTableColumn}
+                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-2.5">
+                                {section.headers.map((header, index) => (
+                                    <div key={index} className="flex gap-2 items-center group">
+                                        <input
+                                            type="text"
+                                            value={header}
+                                            onChange={(e) => updateTableHeader(index, e.target.value)}
+                                            className={`${inputClass} flex-1`}
+                                            placeholder={`Header ${index + 1}`}
+                                        />
+                                        {section.headers.length > 1 && (
+                                            <button
+                                                onClick={() => removeTableColumn(index)}
+                                                className="flex-none p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                title="Remove column"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Rows */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className={sectionTitleClass.replace('mb-3', '')}>Rows ({section.rows.length})</span>
+                                <button
+                                    onClick={addTableRow}
+                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                {section.rows.map((row, rowIndex) => (
+                                    <div key={rowIndex} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 group relative">
+                                        {/* Action: Delete Row */}
                                         <button
                                             onClick={() => removeTableRow(rowIndex)}
-                                            className="p-1 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all"
+                                            className="absolute -top-2 -right-2 p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
                                             title="Remove row"
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <X className="w-3 h-3" />
                                         </button>
+
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-700">
+                                                Row {rowIndex + 1}
+                                            </span>
+                                        </div>
+                                        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${section.headers.length}, 1fr)` }}>
+                                            {row.map((cell, colIndex) => (
+                                                <input
+                                                    key={colIndex}
+                                                    type="text"
+                                                    value={cell}
+                                                    onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
+                                                    className={`${inputClass} text-xs py-2`}
+                                                    placeholder={section.headers[colIndex]}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${section.headers.length}, 1fr)` }}>
-                                        {row.map((cell, colIndex) => (
-                                            <input
-                                                key={colIndex}
-                                                type="text"
-                                                value={cell}
-                                                onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
-                                                className={`${inputClass} text-xs`}
-                                                placeholder={section.headers[colIndex]}
-                                            />
-                                        ))}
+                                ))}
+                                {section.rows.length === 0 && (
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-center">
+                                        <p className="text-sm text-slate-400 dark:text-slate-500">
+                                            No rows.
+                                        </p>
                                     </div>
-                                </div>
-                            ))}
-                            {section.rows.length === 0 && (
-                                <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">
-                                    No rows yet. Click "Add Row" to start.
-                                </p>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
-                </>
-            )}
+                )}
 
-            {/* Divider - no properties needed */}
-            {section.type === 'divider' && (
-                <div className="text-center py-8">
-                    <div className="w-full h-px bg-slate-300 dark:bg-slate-600 mb-4"></div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Horizontal divider - no properties to configure
-                    </p>
-                </div>
-            )}
+                {/* Divider - no properties needed */}
+                {section.type === 'divider' && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
+                        <div className="w-full text-slate-300 dark:text-slate-600 mb-4 flex items-center gap-4">
+                            <span className="h-px bg-current flex-1"></span>
+                            <Minus className="w-6 h-6" />
+                            <span className="h-px bg-current flex-1"></span>
+                        </div>
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                            Horizontal Divider
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                            No configuration needed
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -650,6 +648,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 export default function Editor({ sections, setSections, onSelect, selectedId }: { sections: ContentSection[]; setSections: (s: ContentSection[]) => void; onSelect: (id: string | null) => void; selectedId: string | null }) {
     const [showSidebar, setShowSidebar] = useState(false);
     const [showProperties, setShowProperties] = useState(false);
+    const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
 
     const createSection = (type: string): ContentSection => {
         switch (type) {
@@ -679,11 +678,25 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         setSections(newSections);
     };
 
-    const deleteSection = (index: number) => {
+    const confirmDelete = () => {
+        if (sectionToDelete === null) return;
         const newSections = [...sections];
-        newSections.splice(index, 1);
+        newSections.splice(sectionToDelete, 1);
         setSections(newSections);
-        if (selectedId === `section-${index}`) onSelect(null);
+        if (selectedId === `section-${sectionToDelete}`) onSelect(null);
+        setSectionToDelete(null);
+    };
+
+    const deleteSection = (index: number) => {
+        setSectionToDelete(index);
+    };
+
+    const duplicateSection = (index: number) => {
+        const newSections = [...sections];
+        const sectionToCopy = JSON.parse(JSON.stringify(newSections[index]));
+        newSections.splice(index + 1, 0, sectionToCopy);
+        setSections(newSections);
+        onSelect(`section-${index + 1}`);
     };
 
     const moveUp = (index: number) => {
@@ -712,6 +725,19 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
 
     return (
         <div className="flex h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={sectionToDelete !== null}
+                onClose={() => setSectionToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Delete Section"
+                message="Are you sure you want to delete this section? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                size="sm"
+            />
+
             {/* Mobile Sidebar Overlay */}
             {showSidebar && (
                 <div className="lg:hidden fixed inset-0 z-40">
@@ -821,6 +847,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                                 key={`section-${index}`}
                                 section={section}
                                 onDelete={() => deleteSection(index)}
+                                onDuplicate={() => duplicateSection(index)}
                                 onSelect={() => onSelect(`section-${index}`)}
                                 onMoveUp={() => moveUp(index)}
                                 onMoveDown={() => moveDown(index)}
@@ -851,25 +878,20 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             </div>
 
             {/* Desktop Properties Panel */}
-            <div className="hidden lg:flex w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex-col">
-                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                        Properties
-                    </h2>
-                </div>
+            <div className="hidden lg:flex w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex-col">
                 {selectedSection ? (
                     <PropertiesPanel
                         section={selectedSection}
                         onChange={(updated) => updateSection(selectedIndex, updated)}
                     />
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-500 p-8 text-center">
-                        <div>
-                            <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <Settings className="w-8 h-8 text-slate-500 dark:text-slate-400" />
+                    <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 p-8 text-center">
+                        <div className="max-w-[200px]">
+                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm mb-4 mx-auto w-16 h-16 flex items-center justify-center border border-slate-100 dark:border-slate-700">
+                                <Settings className="w-8 h-8 text-indigo-500/50 dark:text-indigo-400/50" />
                             </div>
-                            <p className="font-medium text-slate-500 dark:text-slate-400">Select a component</p>
-                            <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">to edit its properties</p>
+                            <p className="font-semibold text-slate-900 dark:text-white mb-1">Properties</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Select a component to configure it</p>
                         </div>
                     </div>
                 )}

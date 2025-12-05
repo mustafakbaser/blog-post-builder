@@ -9,6 +9,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'info';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 const ConfirmDialog = ({
@@ -19,7 +20,8 @@ const ConfirmDialog = ({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'warning'
+  variant = 'warning',
+  size = 'md'
 }: ConfirmDialogProps) => {
   if (!isOpen) return null;
 
@@ -48,6 +50,12 @@ const ConfirmDialog = ({
 
   const styles = variantStyles[variant];
 
+  const maxWidthClass = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg'
+  }[size];
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
       {/* Backdrop */}
@@ -57,7 +65,7 @@ const ConfirmDialog = ({
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+      <div className={`relative w-full ${maxWidthClass} bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200`}>
         {/* Close button */}
         <button
           onClick={onClose}

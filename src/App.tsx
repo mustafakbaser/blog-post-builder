@@ -27,7 +27,7 @@ const getDefaultPost = (): BlogPost => ({
   slug: 'new-blog-post',
   excerpt: 'A short summary of the post...',
   content: [],
-  imageUrl: 'https://via.placeholder.com/1200x600',
+  imageUrl: 'https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp',
   publishedAt: new Date().toISOString(),
   category: 'Yazılım Geliştirme',
   readTime: 5,
@@ -38,7 +38,7 @@ const getDefaultPost = (): BlogPost => ({
     author: 'Mustafa Kürşad Başer',
     publishedAt: new Date().toISOString(),
     modifiedAt: new Date().toISOString(),
-    image: 'https://via.placeholder.com/1200x600',
+    image: 'https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp',
     section: 'Yazılım Geliştirme',
     tags: []
   }
@@ -93,7 +93,8 @@ function App() {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
+    clear: resetHistory
   } = useHistory<ContentSection[]>(post.content, { maxHistory: 50 });
 
   // Sync sections with post state whenever history changes
@@ -186,7 +187,9 @@ function App() {
 
   const handleReset = () => {
     clearLocalStorage();
-    setPost(getDefaultPost());
+    const defaultPost = getDefaultPost();
+    setPost(defaultPost);
+    resetHistory(defaultPost.content); // Reset history to default content
     setKeywordsInput('');
     setTagsInput('');
     setIncludeReadTime(false);
@@ -210,6 +213,7 @@ function App() {
 
       // Update all state with imported data
       setPost(importedPost);
+      resetHistory(importedPost.content); // Reset history to imported content
       setKeywordsInput(keywords);
       setTagsInput(tags);
 

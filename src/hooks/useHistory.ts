@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-interface UseHistoryOptions<T> {
+interface UseHistoryOptions {
     maxHistory?: number;
 }
 
@@ -11,13 +11,13 @@ interface UseHistoryResult<T> {
     redo: () => void;
     canUndo: boolean;
     canRedo: boolean;
-    clear: () => void;
+    clear: (newState?: T) => void;
     // For debugging/display
     historyLength: number;
     historyIndex: number;
 }
 
-export function useHistory<T>(initialState: T, options: UseHistoryOptions<T> = {}): UseHistoryResult<T> {
+export function useHistory<T>(initialState: T, options: UseHistoryOptions = {}): UseHistoryResult<T> {
     const { maxHistory = 50 } = options;
 
     // We store the entire history in a single state object to ensure atomic updates
@@ -85,10 +85,10 @@ export function useHistory<T>(initialState: T, options: UseHistoryOptions<T> = {
         });
     }, [maxHistory]);
 
-    const clear = useCallback(() => {
+    const clear = useCallback((newState?: T) => {
         setHistory({
             past: [],
-            present: initialState,
+            present: newState !== undefined ? newState : initialState,
             future: [],
         });
     }, [initialState]);
