@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
+import MetadataForm from './components/MetadataForm';
 import ConfirmDialog from './components/ConfirmDialog';
 import Toast from './components/Toast';
 import type { BlogPost, ContentSection } from './types/blog';
@@ -11,15 +12,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useHistory } from './hooks/useHistory';
 import { parseImportedFile, extractMetadata } from './utils/importExport';
 
-const CATEGORIES = [
-  'Yazılım Geliştirme',
-  'Yazılım Prensipleri',
-  'Gelişim',
-  'Sanat & Edebiyat',
-  'Web Geliştirme',
-  'Veri Tabanı',
-  'DevOps'
-];
+
 
 const getDefaultPost = (): BlogPost => ({
   id: Date.now(),
@@ -270,18 +263,12 @@ function App() {
     // Convert to JSON string
     let exportData = JSON.stringify(exportPost, null, 2);
 
-    // Debug: Log export data before modifications
-    console.log('📤 Export data (valid JSON):', exportData.substring(0, 200));
-
-    // Add readTime getter if not included
+    // Add readTime getter if not included (User Requirement)
     if (!includeReadTime) {
-      // Remove the last closing brace
       const lines = exportData.split('\n');
+      lines.pop(); // Remove last }
 
-      // Remove the last }
-      lines.pop();
-
-      // Add comma after the last property if it doesn't have one
+      // Ensure comma on last property
       if (lines[lines.length - 1].trim() && !lines[lines.length - 1].trim().endsWith(',')) {
         lines[lines.length - 1] = lines[lines.length - 1] + ',';
       }
@@ -295,25 +282,17 @@ function App() {
       exportData = lines.join('\n');
     }
 
-    console.log('📤 Final export data (first 500 chars):', exportData.substring(0, 500));
-    console.log('📤 Has get readTime:', exportData.includes('get readTime'));
-    console.log('✅ Export format check:', (() => {
-      if (!includeReadTime) {
-        return exportData.includes('get readTime()') ? 'Has getter function ✅' : 'Missing getter ❌';
-      }
-      try {
-        JSON.parse(exportData);
-        return 'Valid JSON ✅';
-      } catch {
-        return 'Invalid JSON ❌';
-      }
-    })());
+    console.log('📤 Export data:', exportData.substring(0, 200));
 
     const blob = new Blob([exportData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${post.slug || 'blog-post'}.json`;
+
+    // Robust filename generation
+    const safeSlug = post.slug?.trim() || 'blog-post';
+    a.download = `${safeSlug}.json`;
+
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
@@ -328,22 +307,7 @@ function App() {
     setSections(newSections);
   };
 
-  const updateKeywords = (value: string) => {
-    setKeywordsInput(value);
-  };
 
-  const updateTags = (value: string) => {
-    setTagsInput(value);
-  };
-
-  const handleCategoryChange = (value: string) => {
-    if (value === 'custom') {
-      setCustomCategory(true);
-    } else {
-      setCustomCategory(false);
-      setPost({ ...post, category: value, seo: { ...post.seo!, section: value } });
-    }
-  };
 
   return (
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
@@ -494,221 +458,19 @@ function App() {
               selectedId={selectedSectionId}
             />
           ) : activeTab === 'metadata' ? (
-            <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-                  {/* Header */}
-                  <div className="border-b border-slate-200 dark:border-slate-700 pb-4 sm:pb-6">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white">
-                      Post Metadata
-                    </h2>
-                    <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">Configure all aspects of your blog post</p>
-                  </div>
-
-                  {/* Basic Info */}
-                  <div className="space-y-4 sm:space-y-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
-                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">Basic Information</h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">ID</label>
-                        <input
-                          type="number"
-                          value={post.id}
-                          onChange={(e) => setPost({ ...post, id: Number(e.target.value) })}
-                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                          placeholder="1"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Slug</label>
-                        <input
-                          type="text"
-                          value={post.slug}
-                          onChange={(e) => setPost({ ...post, slug: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                          placeholder="post-url-slug"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Title</label>
-                      <input
-                        type="text"
-                        value={post.title}
-                        onChange={(e) => setPost({ ...post, title: e.target.value, seo: { ...post.seo!, title: e.target.value } })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="Enter your amazing blog post title..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
-                      {customCategory ? (
-                        <div className="flex gap-3">
-                          <input
-                            type="text"
-                            value={post.category}
-                            onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
-                            className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                            placeholder="Enter custom category..."
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => setCustomCategory(false)}
-                            className="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <select
-                          value={post.category}
-                          onChange={(e) => handleCategoryChange(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        >
-                          {CATEGORIES.map(cat => (
-                            <option key={cat} value={cat} className="bg-white dark:bg-slate-800">
-                              {cat}
-                            </option>
-                          ))}
-                          <option value="custom" className="bg-white dark:bg-slate-800 font-medium text-indigo-600 dark:text-indigo-400">
-                            + Yeni Kategori
-                          </option>
-                        </select>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Excerpt</label>
-                      <textarea
-                        value={post.excerpt}
-                        onChange={(e) => setPost({ ...post, excerpt: e.target.value, seo: { ...post.seo!, description: e.target.value } })}
-                        rows={3}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white resize-none"
-                        placeholder="A compelling summary of your post..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Image URL</label>
-                      <input
-                        type="text"
-                        value={post.imageUrl}
-                        onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="https://..."
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Published At</label>
-                        <input
-                          type="datetime-local"
-                          value={post.publishedAt.slice(0, 16)}
-                          onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
-                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="flex items-center gap-2 mb-2">
-                          <input
-                            type="checkbox"
-                            checked={includeReadTime}
-                            onChange={(e) => setIncludeReadTime(e.target.checked)}
-                            className="w-4 h-4 text-indigo-600 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400"
-                          />
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Include Read Time</span>
-                        </label>
-                        {includeReadTime && (
-                          <input
-                            type="number"
-                            value={post.readTime}
-                            onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                            placeholder="5"
-                          />
-                        )}
-                        {!includeReadTime && (
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Will be calculated automatically
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SEO */}
-                  <div className="space-y-4 sm:space-y-5 pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-1 h-6 bg-emerald-500 rounded-full"></div>
-                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">SEO Settings</h3>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">SEO Title</label>
-                      <input
-                        type="text"
-                        value={post.seo?.title || ''}
-                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, title: e.target.value } })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="SEO optimized title"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">SEO Description</label>
-                      <textarea
-                        value={post.seo?.description || ''}
-                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, description: e.target.value } })}
-                        rows={2}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white resize-none"
-                        placeholder="SEO meta description"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Author</label>
-                      <input
-                        type="text"
-                        value={post.seo?.author || ''}
-                        onChange={(e) => setPost({ ...post, seo: { ...post.seo!, author: e.target.value } })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="Author name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Keywords (comma separated)</label>
-                      <input
-                        type="text"
-                        value={keywordsInput}
-                        onChange={(e) => updateKeywords(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="Docker, DevOps, Tutorial"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tags (comma separated)</label>
-                      <input
-                        type="text"
-                        value={tagsInput}
-                        onChange={(e) => updateTags(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
-                        placeholder="Docker, Containerization, DevOps"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="h-full overflow-y-auto p-4 sm:p-6 bg-slate-100 dark:bg-slate-900">
+              <MetadataForm
+                post={post}
+                setPost={setPost}
+                keywordsInput={keywordsInput}
+                setKeywordsInput={setKeywordsInput}
+                tagsInput={tagsInput}
+                setTagsInput={setTagsInput}
+                includeReadTime={includeReadTime}
+                setIncludeReadTime={setIncludeReadTime}
+                customCategory={customCategory}
+                setCustomCategory={setCustomCategory}
+              />
             </div>
           ) : (
             <div className="h-full flex flex-col bg-white dark:bg-slate-900">
