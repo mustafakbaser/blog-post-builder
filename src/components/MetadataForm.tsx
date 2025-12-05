@@ -140,7 +140,7 @@ export default function MetadataForm({
                                 />
                             </InputGroup>
 
-                            <InputGroup label="Internal ID" icon={Hash} className="col-span-1">
+                            <InputGroup label="ID" icon={Hash} className="col-span-1">
                                 <input
                                     type="number"
                                     value={post.id}

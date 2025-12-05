@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ContentSection } from '../types/blog';
 import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2, PanelLeftOpen, PanelRightOpen, X, Copy } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
@@ -147,6 +147,31 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
 }
 
 // Properties Panel Component
+const ImagePreview = ({ url }: { url: string }) => {
+    const [error, setError] = useState(false);
+    useEffect(() => { setError(false); }, [url]);
+
+    if (!url) return null;
+
+    return (
+        <div className="mt-3 relative aspect-video bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+            {!error ? (
+                <img
+                    src={url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={() => setError(true)}
+                />
+            ) : (
+                <div className="flex flex-col items-center text-slate-400">
+                    <ImageIcon className="w-8 h-8 mb-1 opacity-50" />
+                    <span className="text-[10px] uppercase tracking-wider font-medium">Invalid Image</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
 function PropertiesPanel({ section, onChange }: { section: ContentSection | null; onChange: (updated: ContentSection) => void }) {
     if (!section) {
         return (
@@ -296,6 +321,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                                 className={inputClass}
                                 placeholder="https://example.com/image.jpg"
                             />
+                            <ImagePreview url={section.url} />
                         </div>
                         <div>
                             <label className={labelClass}>Alt Text</label>
