@@ -292,13 +292,78 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
             {section.type === 'code' && (
                 <div>
                     <label className={labelClass}>Programming Language</label>
-                    <input
-                        type="text"
+                    <select
                         value={section.language}
                         onChange={(e) => onChange({ ...section, language: e.target.value })}
                         className={inputClass}
-                        placeholder="javascript, python, etc."
-                    />
+                    >
+                        <optgroup label="Web Development">
+                            <option value="javascript">JavaScript</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="scss">SCSS / Sass</option>
+                            <option value="jsx">JSX (React)</option>
+                            <option value="tsx">TSX (React + TS)</option>
+                            <option value="vue">Vue</option>
+                            <option value="svelte">Svelte</option>
+                            <option value="php">PHP</option>
+                        </optgroup>
+                        <optgroup label="Backend / General Purpose">
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="csharp">C#</option>
+                            <option value="cpp">C++</option>
+                            <option value="c">C</option>
+                            <option value="go">Go</option>
+                            <option value="rust">Rust</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="kotlin">Kotlin</option>
+                            <option value="scala">Scala</option>
+                            <option value="swift">Swift</option>
+                            <option value="dart">Dart</option>
+                        </optgroup>
+                        <optgroup label="Database & Query">
+                            <option value="sql">SQL</option>
+                            <option value="mysql">MySQL</option>
+                            <option value="postgresql">PostgreSQL</option>
+                            <option value="mongodb">MongoDB</option>
+                            <option value="graphql">GraphQL</option>
+                        </optgroup>
+                        <optgroup label="Shell & DevOps">
+                            <option value="bash">Bash / Shell</option>
+                            <option value="powershell">PowerShell</option>
+                            <option value="dockerfile">Dockerfile</option>
+                            <option value="yaml">YAML</option>
+                            <option value="nginx">Nginx</option>
+                            <option value="apache">Apache</option>
+                        </optgroup>
+                        <optgroup label="Data & Config">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                            <option value="toml">TOML</option>
+                            <option value="ini">INI</option>
+                            <option value="env">ENV</option>
+                        </optgroup>
+                        <optgroup label="Markup & Documentation">
+                            <option value="markdown">Markdown</option>
+                            <option value="latex">LaTeX</option>
+                            <option value="plaintext">Plain Text</option>
+                        </optgroup>
+                        <optgroup label="Other Languages">
+                            <option value="r">R</option>
+                            <option value="matlab">MATLAB</option>
+                            <option value="julia">Julia</option>
+                            <option value="perl">Perl</option>
+                            <option value="lua">Lua</option>
+                            <option value="haskell">Haskell</option>
+                            <option value="elixir">Elixir</option>
+                            <option value="clojure">Clojure</option>
+                            <option value="fsharp">F#</option>
+                            <option value="assembly">Assembly</option>
+                            <option value="solidity">Solidity</option>
+                        </optgroup>
+                    </select>
                 </div>
             )}
 
