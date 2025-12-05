@@ -25,6 +25,32 @@ export const validateBlogPost = (data: any): data is BlogPost => {
 };
 
 /**
+ * Sanitize JavaScript-specific syntax from exported files
+ * Converts single quotes to double quotes and removes getter functions
+ */
+const sanitizeJsonString = (text: string): string => {
+  let sanitized = text;
+
+  // Remove getter functions (e.g., "get readTime() { ... }")
+  // This regex matches the entire getter block including its body
+  sanitized = sanitized.replace(/,?\s*get\s+\w+\s*\([^)]*\)\s*\{[^}]*\}/g, '');
+
+  // Convert single quotes to double quotes for JSON compatibility
+  // But preserve single quotes inside double-quoted strings
+  sanitized = sanitized.replace(/(\w+):\s*'([^']*)'/g, '$1: "$2"');
+
+  // Fix remaining single quotes in array values
+  sanitized = sanitized.replace(/\[\s*'([^']*)'(?:\s*,\s*'([^']*)')*\s*\]/g, (match) => {
+    return match.replace(/'/g, '"');
+  });
+
+  // Remove trailing commas before closing braces/brackets (invalid JSON)
+  sanitized = sanitized.replace(/,(\s*[}\]])/g, '$1');
+
+  return sanitized;
+};
+
+/**
  * Parse and validate imported JSON file
  */
 export const parseImportedFile = async (file: File): Promise<BlogPost | null> => {
@@ -45,7 +71,13 @@ export const parseImportedFile = async (file: File): Promise<BlogPost | null> =>
         console.log('🔍 First char:', text.charAt(0));
         console.log('🔍 Last char:', text.charAt(text.length - 1));
 
-        const data = JSON.parse(text);
+        // Sanitize the text before parsing
+        const sanitizedText = sanitizeJsonString(text);
+        console.log('🧹 Sanitized (first 500 chars):', sanitizedText.substring(0, 500));
+        console.log('🔍 After sanitization - Has single quotes:', sanitizedText.includes("'"));
+        console.log('🔍 After sanitization - Has get keyword:', sanitizedText.includes('get '));
+
+        const data = JSON.parse(sanitizedText);
 
         // Debug log 3: Successfully parsed
         console.log('✅ JSON parsed successfully');

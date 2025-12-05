@@ -195,36 +195,39 @@ function App() {
     // Debug: Log export data before modifications
     console.log('📤 Export data (valid JSON):', exportData.substring(0, 200));
 
-    // COMMENTED OUT: These modifications break JSON format
-    // Replace double quotes with single quotes
-    // exportData = exportData.replace(/"([^"]+)":/g, "$1:");  // Remove quotes from keys
-    // exportData = exportData.replace(/: "([^"]*)"/g, ": '$1'");  // Replace double quotes with single quotes in values
-    // Fix all quotes in arrays (handles multiple elements)
-    // exportData = exportData.replace(/"([^"]*?)"/g, "'$1'");  // Replace remaining double quotes with single quotes
-
-
-    // COMMENTED OUT: Getter functions are not valid JSON
     // Add readTime getter if not included
-    // if (!includeReadTime) {
-    //   // Find the closing brace before the last one and add the getter
-    //   const lines = exportData.split('\n');
-    //   const lastBraceIndex = lines.length - 1;
+    if (!includeReadTime) {
+      // Remove the last closing brace
+      const lines = exportData.split('\n');
 
-    //   // Insert getter before the last closing brace
-    //   lines.splice(lastBraceIndex, 0, '  get readTime() {');
-    //   lines.splice(lastBraceIndex + 1, 0, '    return calculateReadingTime(this.content);');
-    //   lines.splice(lastBraceIndex + 2, 0, '  }');
+      // Remove the last }
+      lines.pop();
 
-    //   exportData = lines.join('\n');
-    // }
+      // Add comma after the last property if it doesn't have one
+      if (lines[lines.length - 1].trim() && !lines[lines.length - 1].trim().endsWith(',')) {
+        lines[lines.length - 1] = lines[lines.length - 1] + ',';
+      }
+
+      // Add getter function
+      lines.push('  get readTime() {');
+      lines.push('    return calculateReadingTime(this.content);');
+      lines.push('  }');
+      lines.push('}');
+
+      exportData = lines.join('\n');
+    }
 
     console.log('📤 Final export data (first 500 chars):', exportData.substring(0, 500));
-    console.log('✅ Export data is valid JSON:', (() => {
+    console.log('📤 Has get readTime:', exportData.includes('get readTime'));
+    console.log('✅ Export format check:', (() => {
+      if (!includeReadTime) {
+        return exportData.includes('get readTime()') ? 'Has getter function ✅' : 'Missing getter ❌';
+      }
       try {
         JSON.parse(exportData);
-        return true;
+        return 'Valid JSON ✅';
       } catch {
-        return false;
+        return 'Invalid JSON ❌';
       }
     })());
 
