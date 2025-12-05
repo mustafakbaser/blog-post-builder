@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
+import ConfirmDialog from './components/ConfirmDialog';
 import type { BlogPost, ContentSection } from './types/blog';
 import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw } from 'lucide-react';
 import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './utils/localStorage';
@@ -77,6 +78,7 @@ function App() {
   });
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -105,16 +107,14 @@ function App() {
   );
 
   const handleReset = () => {
-    if (confirm('Tüm değişiklikler silinecek ve varsayılan ayarlar yüklenecek. Devam etmek istiyor musunuz?')) {
-      clearLocalStorage();
-      setPost(getDefaultPost());
-      setKeywordsInput('');
-      setTagsInput('');
-      setIncludeReadTime(false);
-      setCustomCategory(false);
-      setActiveTab('editor');
-      setSelectedSectionId(null);
-    }
+    clearLocalStorage();
+    setPost(getDefaultPost());
+    setKeywordsInput('');
+    setTagsInput('');
+    setIncludeReadTime(false);
+    setCustomCategory(false);
+    setActiveTab('editor');
+    setSelectedSectionId(null);
   };
 
   const handleExport = () => {
@@ -207,6 +207,18 @@ function App() {
 
   return (
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+      {/* Reset Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showResetDialog}
+        onClose={() => setShowResetDialog(false)}
+        onConfirm={handleReset}
+        title="Reset All Changes"
+        message="All changes will be deleted and default settings will be restored. This action cannot be undone. Do you want to continue?"
+        confirmText="Yes, Reset"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
       <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors">
         {/* Top Bar */}
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between sticky top-0 z-50">
@@ -268,7 +280,7 @@ function App() {
 
             {/* Reset Button */}
             <button
-              onClick={handleReset}
+              onClick={() => setShowResetDialog(true)}
               className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
               title="Reset All"
             >
