@@ -4,9 +4,11 @@ import PreviewPost from './components/PreviewPost';
 import ConfirmDialog from './components/ConfirmDialog';
 import Toast from './components/Toast';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw, Upload } from 'lucide-react';
+import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw, Upload, Undo2, Redo2 } from 'lucide-react';
 import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './utils/localStorage';
 import { useAutoSave } from './hooks/useAutoSave';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useHistory } from './hooks/useHistory';
 import { parseImportedFile, extractMetadata } from './utils/importExport';
 
 const CATEGORIES = [
@@ -83,6 +85,78 @@ function App() {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Advanced Undo/Redo for content sections
+  const {
+    state: sections,
+    set: setSections,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useHistory<ContentSection[]>(post.content, { maxHistory: 50 });
+
+  // Sync sections with post state whenever history changes
+  useEffect(() => {
+    // Avoid double updates: Only update if current post.content is different from sections
+    if (JSON.stringify(post.content) !== JSON.stringify(sections)) {
+      setPost(prev => ({ ...prev, content: sections }));
+    }
+  }, [sections]);
+
+  // Keyboard shortcuts configuration
+  useKeyboardShortcuts([
+    {
+      key: 's',
+      ctrl: true,
+      description: 'Save manually',
+      action: () => {
+        saveToLocalStorage({
+          post,
+          keywordsInput,
+          tagsInput,
+          includeReadTime,
+          customCategory,
+          activeTab,
+          lastSaved: new Date().toISOString()
+        });
+        setToast({ message: 'Saved successfully!', type: 'success' });
+      },
+    },
+    {
+      key: 'z',
+      ctrl: true,
+      description: 'Undo',
+      action: () => {
+        if (canUndo) {
+          undo();
+          setToast({ message: 'Undone', type: 'success' });
+        }
+      },
+    },
+    {
+      key: 'y',
+      ctrl: true,
+      description: 'Redo',
+      action: () => {
+        if (canRedo) {
+          redo();
+          setToast({ message: 'Redone', type: 'success' });
+        }
+      },
+    },
+    {
+      key: 'p',
+      ctrl: true,
+      description: 'Toggle Preview',
+      action: () => setActiveTab(prev => prev === 'preview' ? 'editor' : 'preview'),
+    },
+    {
+      key: 'Escape',
+      description: 'Deselect section',
+      action: () => setSelectedSectionId(null),
+    },
+  ]);
 
   useEffect(() => {
     if (darkMode) {
@@ -247,7 +321,7 @@ function App() {
   };
 
   const updateSections = (newSections: ContentSection[]) => {
-    setPost({ ...post, content: newSections });
+    setSections(newSections);
   };
 
   const updateKeywords = (value: string) => {
@@ -294,7 +368,7 @@ function App() {
         {/* Top Bar */}
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-2 sm:gap-6">
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:flex items-center gap-2 sm:gap-3">
               <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-7 h-7 sm:w-8 sm:h-8" />
               <div>
                 <h1 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
@@ -303,9 +377,30 @@ function App() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Create amazing content</p>
               </div>
             </div>
+            {/* Mobile Logo / Title Placeholder if needed? No, user said "logo gözükmesin" */}
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Undo/Redo Buttons */}
+            <div className="flex items-center gap-1 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3">
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Tab Navigation */}
             <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-0.5 sm:p-1 rounded-lg">
               <button
@@ -612,8 +707,15 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900">
-              <PreviewPost post={post} />
+            <div className="h-full flex flex-col bg-white dark:bg-slate-900">
+              <div className="flex-1 overflow-y-auto bg-slate-100 dark:bg-slate-900/50">
+                <div className="min-h-full w-full flex flex-col items-center py-8">
+                  {/* Standard responsive container */}
+                  <div className="bg-white dark:bg-slate-900 w-full max-w-5xl shadow-lg mx-auto min-h-full">
+                    <PreviewPost post={post} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
