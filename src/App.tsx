@@ -147,28 +147,29 @@ function App() {
 
   return (
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
-      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors">
         {/* Top Bar */}
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-lg z-10">
+        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
               <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-8 h-8" />
               <div>
-                <h1 className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                <h1 className="font-semibold text-lg text-slate-900 dark:text-white">
                   Blog Builder
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Create amazing content</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Create amazing content</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl shadow-inner">
+          <div className="flex items-center gap-3">
+            {/* Tab Navigation */}
+            <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-lg">
               <button
                 onClick={() => setActiveTab('editor')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'editor'
-                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'editor'
+                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Code className="w-4 h-4" />
@@ -176,9 +177,9 @@ function App() {
               </button>
               <button
                 onClick={() => setActiveTab('metadata')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'metadata'
-                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'metadata'
+                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Settings className="w-4 h-4" />
@@ -186,27 +187,29 @@ function App() {
               </button>
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
-                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'preview'
+                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Eye className="w-4 h-4" />
                 Preview
               </button>
-            </div>
+            </nav>
 
+            {/* Theme Toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-md"
+              className="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
               title={darkMode ? 'Light mode' : 'Dark mode'}
             >
-              {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
+            {/* Export Button */}
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl text-sm font-semibold"
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white rounded-lg transition-colors text-sm font-medium"
             >
               <Download className="w-4 h-4" />
               Export JSON
@@ -225,72 +228,73 @@ function App() {
             />
           ) : activeTab === 'metadata' ? (
             <div className="h-full overflow-y-auto p-8">
-              <div className="max-w-5xl mx-auto">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 space-y-10 border border-gray-200 dark:border-gray-700">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-8">
+                  {/* Header */}
+                  <div className="border-b border-slate-200 dark:border-slate-700 pb-6">
+                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                       Post Metadata
                     </h2>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">Configure all aspects of your blog post</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Configure all aspects of your blog post</p>
                   </div>
 
                   {/* Basic Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full"></div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Basic Information</h3>
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Basic Information</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">ID</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">ID</label>
                         <input
                           type="number"
                           value={post.id}
                           onChange={(e) => setPost({ ...post, id: Number(e.target.value) })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                           placeholder="1"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Slug</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Slug</label>
                         <input
                           type="text"
                           value={post.slug}
                           onChange={(e) => setPost({ ...post, slug: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                           placeholder="post-url-slug"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Title</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Title</label>
                       <input
                         type="text"
                         value={post.title}
                         onChange={(e) => setPost({ ...post, title: e.target.value, seo: { ...post.seo!, title: e.target.value } })}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="Enter your amazing blog post title..."
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Category</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
                       {customCategory ? (
                         <div className="flex gap-3">
                           <input
                             type="text"
                             value={post.category}
                             onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
-                            className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                            className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                             placeholder="Enter custom category..."
                             autoFocus
                           />
                           <button
                             onClick={() => setCustomCategory(false)}
-                            className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                            className="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                           >
                             Cancel
                           </button>
@@ -299,14 +303,14 @@ function App() {
                         <select
                           value={post.category}
                           onChange={(e) => handleCategoryChange(e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         >
                           {CATEGORIES.map(cat => (
-                            <option key={cat} value={cat} className="bg-white dark:bg-gray-800">
+                            <option key={cat} value={cat} className="bg-white dark:bg-slate-800">
                               {cat}
                             </option>
                           ))}
-                          <option value="custom" className="bg-white dark:bg-gray-800 font-semibold text-indigo-600 dark:text-indigo-400">
+                          <option value="custom" className="bg-white dark:bg-slate-800 font-medium text-indigo-600 dark:text-indigo-400">
                             + Yeni Kategori
                           </option>
                         </select>
@@ -314,59 +318,59 @@ function App() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Excerpt</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Excerpt</label>
                       <textarea
                         value={post.excerpt}
                         onChange={(e) => setPost({ ...post, excerpt: e.target.value, seo: { ...post.seo!, description: e.target.value } })}
-                        rows={4}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+                        rows={3}
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white resize-none"
                         placeholder="A compelling summary of your post..."
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Image URL</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Image URL</label>
                       <input
                         type="text"
                         value={post.imageUrl}
                         onChange={(e) => setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } })}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="https://..."
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Published At</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Published At</label>
                         <input
                           type="datetime-local"
                           value={post.publishedAt.slice(0, 16)}
                           onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value).toISOString(), seo: { ...post.seo!, publishedAt: new Date(e.target.value).toISOString(), modifiedAt: new Date().toISOString() } })}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         />
                       </div>
 
                       <div>
-                        <label className="flex items-center gap-3 mb-3">
+                        <label className="flex items-center gap-2 mb-2">
                           <input
                             type="checkbox"
                             checked={includeReadTime}
                             onChange={(e) => setIncludeReadTime(e.target.checked)}
-                            className="w-5 h-5 text-indigo-600 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                            className="w-4 h-4 text-indigo-600 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400"
                           />
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Include Read Time</span>
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Include Read Time</span>
                         </label>
                         {includeReadTime && (
                           <input
                             type="number"
                             value={post.readTime}
                             onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                             placeholder="5"
                           />
                         )}
                         {!includeReadTime && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                             Will be calculated automatically
                           </p>
                         )}
@@ -375,63 +379,63 @@ function App() {
                   </div>
 
                   {/* SEO */}
-                  <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full"></div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">SEO Settings</h3>
+                  <div className="space-y-5 pt-6 border-t border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-1 h-6 bg-emerald-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">SEO Settings</h3>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">SEO Title</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">SEO Title</label>
                       <input
                         type="text"
                         value={post.seo?.title || ''}
                         onChange={(e) => setPost({ ...post, seo: { ...post.seo!, title: e.target.value } })}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="SEO optimized title"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">SEO Description</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">SEO Description</label>
                       <textarea
                         value={post.seo?.description || ''}
                         onChange={(e) => setPost({ ...post, seo: { ...post.seo!, description: e.target.value } })}
-                        rows={3}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+                        rows={2}
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white resize-none"
                         placeholder="SEO meta description"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Author</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Author</label>
                       <input
                         type="text"
                         value={post.seo?.author || ''}
                         onChange={(e) => setPost({ ...post, seo: { ...post.seo!, author: e.target.value } })}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="Author name"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Keywords (comma separated)</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Keywords (comma separated)</label>
                       <input
                         type="text"
                         value={keywordsInput}
                         onChange={(e) => updateKeywords(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="Docker, DevOps, Tutorial"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tags (comma separated)</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tags (comma separated)</label>
                       <input
                         type="text"
                         value={tagsInput}
                         onChange={(e) => updateTags(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white"
                         placeholder="Docker, Containerization, DevOps"
                       />
                     </div>
@@ -440,7 +444,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
+            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900">
               <PreviewPost post={post} />
             </div>
           )}
