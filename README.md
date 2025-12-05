@@ -1,17 +1,22 @@
 # Blog Post Builder
 
-A visual editor for creating structured blog posts with real-time preview. Build rich content with headings, code blocks, images, tables, quotes, and more — then export to JSON for your blog platform.
+A visual editor for creating structured blog posts with real-time preview. Build rich content with headings, code blocks, images, tables, quotes, and more, then export to JSON for your blog platform.
+
+<p align="center">
+  <img src="https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp" alt="Blog Post Builder Screenshot" width="100%" style="max-width: 800px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.05);">
+</p>
 
 ## Features
 
-- **Visual Block Editor** — Drag-and-drop content sections with an intuitive interface
-- **Live Preview** — See exactly how your post will look as you write
-- **Rich Content Types** — Support for text, headings, code blocks, images, quotes, lists, tables, alerts, and dividers
-- **Syntax Highlighting** — 50+ programming languages with categorized dropdown
-- **Dark Mode** — Full dark/light theme support with system preference detection
-- **Mobile Responsive** — Works seamlessly on desktop, tablet, and mobile devices
-- **JSON Export** — Export your posts in a structured format ready for your CMS
-- **Metadata Management** — Set title, category, tags, publish date, and featured image
+- **Visual Block Editor**: Drag-and-drop sections with an intuitive canvas interface
+- **Advanced Properties Panel**: Customize every aspect of your blocks (style, content, variants)
+- **Live Preview**: Real-time responsive preview (Desktop & Mobile views)
+- **Rich Content Types**: Text, Headings, Code (50+ langs), Images, Quotes, Lists, Tables, Alerts, Dividers
+- **History Management**: Robust Undo/Redo support with keyboard shortcuts (`Ctrl+Z`, `Ctrl+Y`)
+- **Productivity Tools**: Duplicate sections, reorder with ease, and safe delete confirmation
+- **JSON Export & Import**: Save your work and continue later, or export for your CMS
+- **Dark Mode**: System-aware dark/light theme support
+
 
 ## Getting Started
 
