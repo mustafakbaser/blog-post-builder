@@ -1,5 +1,5 @@
 import type { ContentSection } from '../types/blog';
-import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings } from 'lucide-react';
+import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2 } from 'lucide-react';
 
 // Sidebar Item Component - Click to add
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
@@ -43,6 +43,26 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
             case 'divider': return Minus;
             case 'heading': return Heading1;
             default: return Type;
+        }
+    };
+
+    const getPreview = () => {
+        switch (section.type) {
+            case 'list':
+                return section.items.length > 0
+                    ? `${section.ordered ? '1.' : '•'} ${section.items[0]}${section.items.length > 1 ? ` (+${section.items.length - 1} more)` : ''}`
+                    : 'Empty list...';
+            case 'table':
+                return `${section.headers.length} columns, ${section.rows.length} rows`;
+            case 'divider':
+                return 'Horizontal divider';
+            case 'image':
+                return section.alt || section.url || 'No image';
+            default:
+                if ('content' in section) {
+                    return section.content || 'Empty content...';
+                }
+                return '';
         }
     };
 
@@ -91,13 +111,14 @@ function CanvasItem({ section, onDelete, onSelect, onMoveUp, onMoveDown, isSelec
                     <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                         {section.type}
                     </span>
+                    {section.type === 'list' && (
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                            ({section.ordered ? 'ordered' : 'unordered'})
+                        </span>
+                    )}
                 </div>
                 <div className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                    {'content' in section ? (
-                        section.content || <span className="text-slate-400 dark:text-slate-500 italic">Empty content...</span>
-                    ) : (
-                        <span className="text-slate-400 dark:text-slate-500 italic">Divider</span>
-                    )}
+                    {getPreview() || <span className="text-slate-400 dark:text-slate-500 italic">Empty...</span>}
                 </div>
             </div>
 
@@ -128,6 +149,68 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const inputClass = "w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all text-slate-900 dark:text-white text-sm";
     const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5";
+    const sectionTitleClass = "text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3";
+
+    // List helpers
+    const updateListItem = (index: number, value: string) => {
+        if (section.type !== 'list') return;
+        const newItems = [...section.items];
+        newItems[index] = value;
+        onChange({ ...section, items: newItems });
+    };
+
+    const addListItem = () => {
+        if (section.type !== 'list') return;
+        onChange({ ...section, items: [...section.items, ''] });
+    };
+
+    const removeListItem = (index: number) => {
+        if (section.type !== 'list') return;
+        const newItems = section.items.filter((_, i) => i !== index);
+        onChange({ ...section, items: newItems });
+    };
+
+    // Table helpers
+    const updateTableHeader = (index: number, value: string) => {
+        if (section.type !== 'table') return;
+        const newHeaders = [...section.headers];
+        newHeaders[index] = value;
+        onChange({ ...section, headers: newHeaders });
+    };
+
+    const updateTableCell = (rowIndex: number, colIndex: number, value: string) => {
+        if (section.type !== 'table') return;
+        const newRows = section.rows.map((row, ri) =>
+            ri === rowIndex ? row.map((cell, ci) => ci === colIndex ? value : cell) : row
+        );
+        onChange({ ...section, rows: newRows });
+    };
+
+    const addTableColumn = () => {
+        if (section.type !== 'table') return;
+        const newHeaders = [...section.headers, `Col ${section.headers.length + 1}`];
+        const newRows = section.rows.map(row => [...row, '']);
+        onChange({ ...section, headers: newHeaders, rows: newRows });
+    };
+
+    const removeTableColumn = (colIndex: number) => {
+        if (section.type !== 'table' || section.headers.length <= 1) return;
+        const newHeaders = section.headers.filter((_, i) => i !== colIndex);
+        const newRows = section.rows.map(row => row.filter((_, i) => i !== colIndex));
+        onChange({ ...section, headers: newHeaders, rows: newRows });
+    };
+
+    const addTableRow = () => {
+        if (section.type !== 'table') return;
+        const newRow = section.headers.map(() => '');
+        onChange({ ...section, rows: [...section.rows, newRow] });
+    };
+
+    const removeTableRow = (rowIndex: number) => {
+        if (section.type !== 'table') return;
+        const newRows = section.rows.filter((_, i) => i !== rowIndex);
+        onChange({ ...section, rows: newRows });
+    };
 
     return (
         <div className="p-5 space-y-5 h-full overflow-y-auto">
@@ -137,29 +220,21 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 </h3>
             </div>
 
-            {'content' in section && (
+            {/* Text, Code, Heading content */}
+            {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
                 <div>
                     <label className={labelClass}>Content</label>
-                    {section.type === 'text' || section.type === 'quote' || section.type === 'alert' ? (
-                        <textarea
-                            value={section.content}
-                            onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                            rows={6}
-                            className={`${inputClass} resize-none`}
-                            placeholder="Enter your content here..."
-                        />
-                    ) : (
-                        <input
-                            type="text"
-                            value={section.content}
-                            onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                            className={inputClass}
-                            placeholder="Enter content..."
-                        />
-                    )}
+                    <textarea
+                        value={section.content}
+                        onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
+                        rows={section.type === 'code' ? 8 : 4}
+                        className={`${inputClass} resize-none font-mono`}
+                        placeholder="Enter your content here..."
+                    />
                 </div>
             )}
 
+            {/* Heading Level */}
             {section.type === 'heading' && (
                 <div>
                     <label className={labelClass}>Heading Level</label>
@@ -177,6 +252,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 </div>
             )}
 
+            {/* Image */}
             {section.type === 'image' && (
                 <>
                     <div>
@@ -212,6 +288,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 </>
             )}
 
+            {/* Code Language */}
             {section.type === 'code' && (
                 <div>
                     <label className={labelClass}>Programming Language</label>
@@ -225,19 +302,279 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 </div>
             )}
 
+            {/* Quote */}
+            {section.type === 'quote' && (
+                <>
+                    <div>
+                        <label className={labelClass}>Quote Text</label>
+                        <textarea
+                            value={section.content}
+                            onChange={(e) => onChange({ ...section, content: e.target.value })}
+                            rows={4}
+                            className={`${inputClass} resize-none`}
+                            placeholder="Enter the quote..."
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Author (optional)</label>
+                        <input
+                            type="text"
+                            value={section.author || ''}
+                            onChange={(e) => onChange({ ...section, author: e.target.value })}
+                            className={inputClass}
+                            placeholder="Who said this?"
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Source (optional)</label>
+                        <input
+                            type="text"
+                            value={section.source || ''}
+                            onChange={(e) => onChange({ ...section, source: e.target.value })}
+                            className={inputClass}
+                            placeholder="Book, article, etc."
+                        />
+                    </div>
+                </>
+            )}
+
+            {/* Alert */}
             {section.type === 'alert' && (
-                <div>
-                    <label className={labelClass}>Alert Type</label>
-                    <select
-                        value={section.variant}
-                        onChange={(e) => onChange({ ...section, variant: e.target.value as any })}
-                        className={inputClass}
-                    >
-                        <option value="info" className="bg-white dark:bg-slate-800">Info</option>
-                        <option value="warning" className="bg-white dark:bg-slate-800">Warning</option>
-                        <option value="success" className="bg-white dark:bg-slate-800">Success</option>
-                        <option value="error" className="bg-white dark:bg-slate-800">Error</option>
-                    </select>
+                <>
+                    <div>
+                        <label className={labelClass}>Alert Content</label>
+                        <textarea
+                            value={section.content}
+                            onChange={(e) => onChange({ ...section, content: e.target.value })}
+                            rows={3}
+                            className={`${inputClass} resize-none`}
+                            placeholder="Alert message..."
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Alert Type</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {(['info', 'success', 'warning', 'error'] as const).map(variant => (
+                                <button
+                                    key={variant}
+                                    onClick={() => onChange({ ...section, variant })}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                                        section.variant === variant
+                                            ? variant === 'info' ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+                                            : variant === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
+                                            : variant === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                                            : 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    {variant.charAt(0).toUpperCase() + variant.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Link */}
+            {section.type === 'link' && (
+                <>
+                    <div>
+                        <label className={labelClass}>Link Text</label>
+                        <input
+                            type="text"
+                            value={section.content}
+                            onChange={(e) => onChange({ ...section, content: e.target.value })}
+                            className={inputClass}
+                            placeholder="Click here"
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>URL</label>
+                        <input
+                            type="text"
+                            value={section.url}
+                            onChange={(e) => onChange({ ...section, url: e.target.value })}
+                            className={inputClass}
+                            placeholder="https://example.com"
+                        />
+                    </div>
+                </>
+            )}
+
+            {/* List */}
+            {section.type === 'list' && (
+                <>
+                    <div>
+                        <label className={labelClass}>List Type</label>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => onChange({ ...section, ordered: false })}
+                                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                                    !section.ordered
+                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                • Unordered
+                            </button>
+                            <button
+                                onClick={() => onChange({ ...section, ordered: true })}
+                                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                                    section.ordered
+                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                1. Ordered
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className={labelClass.replace('mb-1.5', '')}>List Items</label>
+                            <button
+                                onClick={addListItem}
+                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
+                            >
+                                <Plus className="w-3 h-3" /> Add Item
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {section.items.map((item, index) => (
+                                <div key={index} className="flex gap-2">
+                                    <span className="flex items-center justify-center w-6 text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                        {section.ordered ? `${index + 1}.` : '•'}
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={item}
+                                        onChange={(e) => updateListItem(index, e.target.value)}
+                                        className={`${inputClass} flex-1`}
+                                        placeholder={`Item ${index + 1}`}
+                                    />
+                                    <button
+                                        onClick={() => removeListItem(index)}
+                                        className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
+                                        title="Remove item"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {section.items.length === 0 && (
+                                <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">
+                                    No items yet. Click "Add Item" to start.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Table */}
+            {section.type === 'table' && (
+                <>
+                    <div>
+                        <label className={labelClass}>Table Caption (optional)</label>
+                        <input
+                            type="text"
+                            value={section.caption || ''}
+                            onChange={(e) => onChange({ ...section, caption: e.target.value })}
+                            className={inputClass}
+                            placeholder="Table description..."
+                        />
+                    </div>
+
+                    {/* Headers */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className={sectionTitleClass.replace('mb-3', '')}>Columns ({section.headers.length})</span>
+                            <button
+                                onClick={addTableColumn}
+                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
+                            >
+                                <Plus className="w-3 h-3" /> Add Column
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {section.headers.map((header, index) => (
+                                <div key={index} className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={header}
+                                        onChange={(e) => updateTableHeader(index, e.target.value)}
+                                        className={`${inputClass} flex-1`}
+                                        placeholder={`Header ${index + 1}`}
+                                    />
+                                    {section.headers.length > 1 && (
+                                        <button
+                                            onClick={() => removeTableColumn(index)}
+                                            className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
+                                            title="Remove column"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Rows */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className={sectionTitleClass.replace('mb-3', '')}>Rows ({section.rows.length})</span>
+                            <button
+                                onClick={addTableRow}
+                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
+                            >
+                                <Plus className="w-3 h-3" /> Add Row
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            {section.rows.map((row, rowIndex) => (
+                                <div key={rowIndex} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Row {rowIndex + 1}</span>
+                                        <button
+                                            onClick={() => removeTableRow(rowIndex)}
+                                            className="p-1 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all"
+                                            title="Remove row"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${section.headers.length}, 1fr)` }}>
+                                        {row.map((cell, colIndex) => (
+                                            <input
+                                                key={colIndex}
+                                                type="text"
+                                                value={cell}
+                                                onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
+                                                className={`${inputClass} text-xs`}
+                                                placeholder={section.headers[colIndex]}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                            {section.rows.length === 0 && (
+                                <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">
+                                    No rows yet. Click "Add Row" to start.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Divider - no properties needed */}
+            {section.type === 'divider' && (
+                <div className="text-center py-8">
+                    <div className="w-full h-px bg-slate-300 dark:bg-slate-600 mb-4"></div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Horizontal divider - no properties to configure
+                    </p>
                 </div>
             )}
         </div>
@@ -252,11 +589,11 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             case 'heading': return { type: 'heading', content: 'New Heading', level: 2 };
             case 'image': return { type: 'image', url: 'https://via.placeholder.com/800x400', alt: 'Placeholder', caption: '' };
             case 'code': return { type: 'code', content: 'console.log("Hello World");', language: 'javascript' };
-            case 'quote': return { type: 'quote', content: 'A wise quote.', author: 'Anonymous' };
-            case 'list': return { type: 'list', items: ['Item 1', 'Item 2'], ordered: false };
-            case 'table': return { type: 'table', headers: ['Col 1', 'Col 2'], rows: [['Cell 1', 'Cell 2']] };
-            case 'alert': return { type: 'alert', content: 'Important alert!', variant: 'info' };
-            case 'link': return { type: 'link', content: 'Click me', url: '#' };
+            case 'quote': return { type: 'quote', content: 'A wise quote.', author: '', source: '' };
+            case 'list': return { type: 'list', items: ['Item 1', 'Item 2', 'Item 3'], ordered: false };
+            case 'table': return { type: 'table', headers: ['Column 1', 'Column 2'], rows: [['Cell 1', 'Cell 2']], caption: '' };
+            case 'alert': return { type: 'alert', content: 'Important information!', variant: 'info' };
+            case 'link': return { type: 'link', content: 'Click here', url: 'https://example.com' };
             case 'divider': return { type: 'divider' };
             default: return { type: 'text', content: '' };
         }
