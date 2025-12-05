@@ -149,70 +149,70 @@ function App() {
     <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
       <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors">
         {/* Top Bar */}
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-8 h-8" />
+        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between sticky top-0 z-50">
+          <div className="flex items-center gap-2 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-7 h-7 sm:w-8 sm:h-8" />
               <div>
-                <h1 className="font-semibold text-lg text-slate-900 dark:text-white">
+                <h1 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
                   Blog Builder
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Create amazing content</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Create amazing content</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Tab Navigation */}
-            <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-lg">
+            <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-0.5 sm:p-1 rounded-lg">
               <button
                 onClick={() => setActiveTab('editor')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'editor'
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'editor'
                   ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Code className="w-4 h-4" />
-                Editor
+                <span className="hidden sm:inline">Editor</span>
               </button>
               <button
                 onClick={() => setActiveTab('metadata')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'metadata'
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'metadata'
                   ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Settings className="w-4 h-4" />
-                Metadata
+                <span className="hidden sm:inline">Metadata</span>
               </button>
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'preview'
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'preview'
                   ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Eye className="w-4 h-4" />
-                Preview
+                <span className="hidden sm:inline">Preview</span>
               </button>
             </nav>
 
             {/* Theme Toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
               title={darkMode ? 'Light mode' : 'Dark mode'}
             >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
 
             {/* Export Button */}
             <button
               onClick={handleExport}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
               title="Export JSON"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </header>
@@ -227,25 +227,25 @@ function App() {
               selectedId={selectedSectionId}
             />
           ) : activeTab === 'metadata' ? (
-            <div className="h-full overflow-y-auto p-8">
+            <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
               <div className="max-w-4xl mx-auto">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-8">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
                   {/* Header */}
-                  <div className="border-b border-slate-200 dark:border-slate-700 pb-6">
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                  <div className="border-b border-slate-200 dark:border-slate-700 pb-4 sm:pb-6">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white">
                       Post Metadata
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Configure all aspects of your blog post</p>
+                    <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">Configure all aspects of your blog post</p>
                   </div>
 
                   {/* Basic Info */}
-                  <div className="space-y-5">
+                  <div className="space-y-4 sm:space-y-5">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Basic Information</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">Basic Information</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">ID</label>
                         <input
@@ -339,7 +339,7 @@ function App() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Published At</label>
                         <input
@@ -379,10 +379,10 @@ function App() {
                   </div>
 
                   {/* SEO */}
-                  <div className="space-y-5 pt-6 border-t border-slate-200 dark:border-slate-700">
+                  <div className="space-y-4 sm:space-y-5 pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-1 h-6 bg-emerald-500 rounded-full"></div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">SEO Settings</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">SEO Settings</h3>
                     </div>
 
                     <div>

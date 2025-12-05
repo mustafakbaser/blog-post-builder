@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { ContentSection } from '../types/blog';
-import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2 } from 'lucide-react';
+import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2, PanelLeftOpen, PanelRightOpen, X } from 'lucide-react';
 
 // Sidebar Item Component - Click to add
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
@@ -647,6 +648,8 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 }
 
 export default function Editor({ sections, setSections, onSelect, selectedId }: { sections: ContentSection[]; setSections: (s: ContentSection[]) => void; onSelect: (id: string | null) => void; selectedId: string | null }) {
+    const [showSidebar, setShowSidebar] = useState(false);
+    const [showProperties, setShowProperties] = useState(false);
 
     const createSection = (type: string): ContentSection => {
         switch (type) {
@@ -702,10 +705,65 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const selectedIndex = selectedId ? parseInt(selectedId.replace('section-', '')) : -1;
     const selectedSection = selectedIndex >= 0 ? sections[selectedIndex] : null;
 
+    const handleAddSection = (type: string) => {
+        addSection(type);
+        setShowSidebar(false);
+    };
+
     return (
-        <div className="flex h-full bg-slate-50 dark:bg-slate-900 overflow-hidden">
-            {/* Sidebar */}
-            <div className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+        <div className="flex h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
+            {/* Mobile Sidebar Overlay */}
+            {showSidebar && (
+                <div className="lg:hidden fixed inset-0 z-40">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowSidebar(false)} />
+                    <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-800 shadow-xl flex flex-col animate-in slide-in-from-left duration-200">
+                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                                Components
+                            </h2>
+                            <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+                                <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                            <SidebarItem icon={Type} label="Text" onClick={() => handleAddSection('text')} />
+                            <SidebarItem icon={Heading1} label="Heading" onClick={() => handleAddSection('heading')} />
+                            <SidebarItem icon={ImageIcon} label="Image" onClick={() => handleAddSection('image')} />
+                            <SidebarItem icon={Code} label="Code Block" onClick={() => handleAddSection('code')} />
+                            <SidebarItem icon={Quote} label="Quote" onClick={() => handleAddSection('quote')} />
+                            <SidebarItem icon={List} label="List" onClick={() => handleAddSection('list')} />
+                            <SidebarItem icon={Table} label="Table" onClick={() => handleAddSection('table')} />
+                            <SidebarItem icon={AlertCircle} label="Alert" onClick={() => handleAddSection('alert')} />
+                            <SidebarItem icon={LinkIcon} label="Link" onClick={() => handleAddSection('link')} />
+                            <SidebarItem icon={Minus} label="Divider" onClick={() => handleAddSection('divider')} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Properties Panel Overlay */}
+            {showProperties && selectedSection && (
+                <div className="lg:hidden fixed inset-0 z-40">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowProperties(false)} />
+                    <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[90vw] bg-white dark:bg-slate-800 shadow-xl flex flex-col animate-in slide-in-from-right duration-200">
+                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                                Properties
+                            </h2>
+                            <button onClick={() => setShowProperties(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+                                <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
+                        <PropertiesPanel
+                            section={selectedSection}
+                            onChange={(updated) => updateSection(selectedIndex, updated)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:flex w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col">
                 <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
                     <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                         Components
@@ -727,17 +785,36 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
 
             {/* Canvas */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                            Canvas
-                        </h2>
-                        <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
-                            {sections.length} {sections.length === 1 ? 'item' : 'items'}
-                        </span>
+                <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                        {/* Mobile Toggle Buttons */}
+                        <button
+                            onClick={() => setShowSidebar(true)}
+                            className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+                            title="Add Component"
+                        >
+                            <PanelLeftOpen className="w-4 h-4" />
+                        </button>
+
+                        <div className="flex items-center gap-2 flex-1 lg:flex-none">
+                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide hidden sm:block">
+                                Canvas
+                            </h2>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                {sections.length} {sections.length === 1 ? 'item' : 'items'}
+                            </span>
+                        </div>
+
+                        <button
+                            onClick={() => setShowProperties(true)}
+                            className={`lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 ${selectedSection ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700' : ''}`}
+                            title="Properties"
+                        >
+                            <PanelRightOpen className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6">
                     <div className="max-w-3xl mx-auto space-y-3">
                         {sections.map((section, index) => (
                             <CanvasItem
@@ -753,14 +830,18 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                             />
                         ))}
                         {sections.length === 0 && (
-                            <div className="text-center py-16 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800/50">
-                                <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                    <Code className="w-8 h-8 text-slate-500 dark:text-slate-400" />
+                            <div className="text-center py-12 sm:py-16 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800/50">
+                                <div className="p-3 sm:p-4 bg-slate-100 dark:bg-slate-700 rounded-xl w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <Code className="w-6 h-6 sm:w-8 sm:h-8 text-slate-500 dark:text-slate-400" />
                                 </div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium">
-                                    Click components from the sidebar to start
+                                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm sm:text-base">
+                                    <span className="lg:hidden">Tap </span>
+                                    <span className="hidden lg:inline">Click components from the sidebar to </span>
+                                    <PanelLeftOpen className="w-4 h-4 inline lg:hidden mx-1" />
+                                    <span className="lg:hidden"> to add components</span>
+                                    <span className="hidden lg:inline">start</span>
                                 </p>
-                                <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
+                                <p className="text-slate-400 dark:text-slate-500 text-xs sm:text-sm mt-1">
                                     Build your blog post visually
                                 </p>
                             </div>
@@ -769,8 +850,8 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                 </div>
             </div>
 
-            {/* Properties Panel */}
-            <div className="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col">
+            {/* Desktop Properties Panel */}
+            <div className="hidden lg:flex w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex-col">
                 <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
                     <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                         Properties
