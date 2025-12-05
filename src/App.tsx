@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import Editor from './components/Editor';
 import PreviewPost from './components/PreviewPost';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Settings, Moon, Sun } from 'lucide-react';
+import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw } from 'lucide-react';
+import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './utils/localStorage';
+import { useAutoSave } from './hooks/useAutoSave';
 
 const CATEGORIES = [
   'Yazılım Geliştirme',
@@ -14,38 +16,66 @@ const CATEGORIES = [
   'DevOps'
 ];
 
+const getDefaultPost = (): BlogPost => ({
+  id: Date.now(),
+  title: 'New Blog Post',
+  slug: 'new-blog-post',
+  excerpt: 'A short summary of the post...',
+  content: [],
+  imageUrl: 'https://via.placeholder.com/1200x600',
+  publishedAt: new Date().toISOString(),
+  category: 'Yazılım Geliştirme',
+  readTime: 5,
+  seo: {
+    title: 'New Blog Post',
+    description: 'A short summary of the post...',
+    keywords: [],
+    author: 'Mustafa Kürşad Başer',
+    publishedAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
+    image: 'https://via.placeholder.com/1200x600',
+    section: 'Yazılım Geliştirme',
+    tags: []
+  }
+});
+
 function App() {
-  const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'metadata'>('editor');
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved === 'true';
   });
-  const [includeReadTime, setIncludeReadTime] = useState(false);
-  const [customCategory, setCustomCategory] = useState(false);
-  const [keywordsInput, setKeywordsInput] = useState('');
-  const [tagsInput, setTagsInput] = useState('');
-  const [post, setPost] = useState<BlogPost>({
-    id: Date.now(),
-    title: 'New Blog Post',
-    slug: 'new-blog-post',
-    excerpt: 'A short summary of the post...',
-    content: [],
-    imageUrl: 'https://via.placeholder.com/1200x600',
-    publishedAt: new Date().toISOString(),
-    category: 'Yazılım Geliştirme',
-    readTime: 5,
-    seo: {
-      title: 'New Blog Post',
-      description: 'A short summary of the post...',
-      keywords: [],
-      author: 'Mustafa Kürşad Başer',
-      publishedAt: new Date().toISOString(),
-      modifiedAt: new Date().toISOString(),
-      image: 'https://via.placeholder.com/1200x600',
-      section: 'Yazılım Geliştirme',
-      tags: []
-    }
+
+  // Initialize state from localStorage or defaults
+  const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'metadata'>(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.activeTab || 'editor';
   });
+
+  const [includeReadTime, setIncludeReadTime] = useState(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.includeReadTime || false;
+  });
+
+  const [customCategory, setCustomCategory] = useState(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.customCategory || false;
+  });
+
+  const [keywordsInput, setKeywordsInput] = useState(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.keywordsInput || '';
+  });
+
+  const [tagsInput, setTagsInput] = useState(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.tagsInput || '';
+  });
+
+  const [post, setPost] = useState<BlogPost>(() => {
+    const saved = loadFromLocalStorage();
+    return saved?.post || getDefaultPost();
+  });
+
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,6 +86,36 @@ function App() {
     }
     localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
+
+  // Auto-save to localStorage with debounce
+  useAutoSave(
+    () => {
+      saveToLocalStorage({
+        post,
+        keywordsInput,
+        tagsInput,
+        includeReadTime,
+        customCategory,
+        activeTab,
+        lastSaved: new Date().toISOString()
+      });
+    },
+    1000, // 1 second debounce
+    [post, keywordsInput, tagsInput, includeReadTime, customCategory, activeTab]
+  );
+
+  const handleReset = () => {
+    if (confirm('Tüm değişiklikler silinecek ve varsayılan ayarlar yüklenecek. Devam etmek istiyor musunuz?')) {
+      clearLocalStorage();
+      setPost(getDefaultPost());
+      setKeywordsInput('');
+      setTagsInput('');
+      setIncludeReadTime(false);
+      setCustomCategory(false);
+      setActiveTab('editor');
+      setSelectedSectionId(null);
+    }
+  };
 
   const handleExport = () => {
     // Convert keywords and tags from input strings to arrays
@@ -204,6 +264,15 @@ function App() {
               title={darkMode ? 'Light mode' : 'Dark mode'}
             >
               {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+            </button>
+
+            {/* Reset Button */}
+            <button
+              onClick={handleReset}
+              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+              title="Reset All"
+            >
+              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Export Button */}
