@@ -5,7 +5,7 @@ import MetadataForm from './components/MetadataForm';
 import ConfirmDialog from './components/ConfirmDialog';
 import Toast from './components/Toast';
 import type { BlogPost, ContentSection } from './types/blog';
-import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw, Upload, Undo2, Redo2 } from 'lucide-react';
+import { Eye, Code, Download, Settings, Moon, Sun, RotateCcw, Upload, Undo2, Redo2, Github } from 'lucide-react';
 import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './utils/localStorage';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -334,117 +334,134 @@ function App() {
 
       <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors">
         {/* Top Bar */}
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between sticky top-0 z-50">
-          <div className="flex items-center gap-2 sm:gap-6">
-            <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-              <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-7 h-7 sm:w-8 sm:h-8" />
-              <div>
-                <h1 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
-                  Blog Builder
-                </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Create amazing content</p>
+        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 sm:px-6 py-2 sm:py-3 sticky top-0 z-50">
+          <div className="flex items-center justify-between w-full gap-2 sm:gap-4">
+            {/* Left Section: Logo + GitHub Link */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Logo (Desktop Only) */}
+              <div className="hidden sm:flex items-center gap-2 sm:gap-3">
+                <img src="/blog-logo.svg" alt="Blog Builder Logo" className="w-7 h-7 sm:w-8 sm:h-8" />
+                <div>
+                  <h1 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
+                    Blog Builder
+                  </h1>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Create amazing content</p>
+                </div>
               </div>
-            </div>
-            {/* Mobile Logo / Title Placeholder if needed? No, user said "logo gözükmesin" */}
-          </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Undo/Redo Buttons */}
-            <div className="flex items-center gap-1 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3">
-              <button
-                onClick={undo}
-                disabled={!canUndo}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                title="Undo (Ctrl+Z)"
+              {/* GitHub Link (Desktop Only) */}
+              <a
+                href="https://github.com/mustafakbaser/blog-post-builder"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                title="View on GitHub"
               >
-                <Undo2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={redo}
-                disabled={!canRedo}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                title="Redo (Ctrl+Y)"
-              >
-                <Redo2 className="w-4 h-4" />
-              </button>
+                <Github className="w-5 h-5" />
+                <span className="text-sm font-medium hidden md:inline">GitHub</span>
+              </a>
             </div>
 
-            {/* Tab Navigation */}
-            <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-0.5 sm:p-1 rounded-lg">
+            {/* Right Section: Controls */}
+
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              {/* Undo/Redo Buttons */}
+              <div className="flex items-center gap-1 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3">
+                <button
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Tab Navigation */}
+              <nav className="flex bg-slate-100 dark:bg-slate-700/50 p-0.5 sm:p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab('editor')}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'editor'
+                    ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                >
+                  <Code className="w-4 h-4" />
+                  <span className="hidden sm:inline">Editor</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('metadata')}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'metadata'
+                    ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Metadata</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('preview')}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'preview'
+                    ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preview</span>
+                </button>
+              </nav>
+
+              {/* Theme Toggle */}
               <button
-                onClick={() => setActiveTab('editor')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'editor'
-                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+                title={darkMode ? 'Light mode' : 'Dark mode'}
               >
-                <Code className="w-4 h-4" />
-                <span className="hidden sm:inline">Editor</span>
+                {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
+
+              {/* Reset Button */}
               <button
-                onClick={() => setActiveTab('metadata')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'metadata'
-                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                onClick={() => setShowResetDialog(true)}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+                title="Reset All"
               >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Metadata</span>
+                <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
+
+              {/* Import Button */}
               <button
-                onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === 'preview'
-                  ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                onClick={triggerImport}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+                title="Import JSON"
               >
-                <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">Preview</span>
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-            </nav>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                className="hidden"
+              />
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
-              title={darkMode ? 'Light mode' : 'Dark mode'}
-            >
-              {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
-            </button>
-
-            {/* Reset Button */}
-            <button
-              onClick={() => setShowResetDialog(true)}
-              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
-              title="Reset All"
-            >
-              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-
-            {/* Import Button */}
-            <button
-              onClick={triggerImport}
-              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
-              title="Import JSON"
-            >
-              <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
-
-            {/* Export Button */}
-            <button
-              onClick={handleExport}
-              className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
-              title="Export JSON"
-            >
-              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
+              {/* Export Button */}
+              <button
+                onClick={handleExport}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors"
+                title="Export JSON"
+              >
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -485,8 +502,8 @@ function App() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
