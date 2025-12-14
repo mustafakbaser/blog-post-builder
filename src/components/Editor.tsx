@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, forwardRef } from 'react';
 import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
@@ -178,6 +178,54 @@ const ImagePreview = ({ url }: { url: string }) => {
     );
 };
 
+// Optimized Textarea Component
+const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ value, onChange, ...props }, ref) => {
+    const defaultRef = useRef<HTMLTextAreaElement>(null);
+    const resolvedRef = (ref as React.MutableRefObject<HTMLTextAreaElement>) || defaultRef;
+    const [localValue, setLocalValue] = useState(value);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastEmittedValue = useRef(value);
+
+    // Sync from props if significantly different (external change)
+    useEffect(() => {
+        if (value !== lastEmittedValue.current && value !== localValue) {
+            setLocalValue(value);
+            lastEmittedValue.current = value;
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (resolvedRef.current) {
+                resolvedRef.current.style.height = 'auto';
+                resolvedRef.current.style.height = resolvedRef.current.scrollHeight + 'px';
+            }
+        }
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const val = e.target.value;
+        setLocalValue(val);
+
+        // Auto-resize
+        e.target.style.height = 'auto';
+        e.target.style.height = e.target.scrollHeight + 'px';
+
+        if (timerRef.current) clearTimeout(timerRef.current);
+
+        timerRef.current = setTimeout(() => {
+            lastEmittedValue.current = val;
+            if (onChange) onChange(e);
+        }, 300);
+    };
+
+    // Initial resize
+    useLayoutEffect(() => {
+        if (resolvedRef.current) {
+            resolvedRef.current.style.height = 'auto';
+            resolvedRef.current.style.height = resolvedRef.current.scrollHeight + 'px';
+        }
+    }, []);
+
+    return <textarea ref={resolvedRef} value={localValue} onChange={handleChange} {...props} />;
+});
+
 function PropertiesPanel({ section, onChange }: { section: ContentSection | null; onChange: (updated: ContentSection) => void }) {
     if (!section) {
         return (
@@ -198,15 +246,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     const scrollbarStyle = getScrollbarStyle(isDark);
 
     // Fix: Cursor jumping issue logic
-    const cursorRef = useRef<number | null>(null);
-
-    useLayoutEffect(() => {
-        if (cursorRef.current !== null && textareaRef.current) {
-            textareaRef.current.setSelectionRange(cursorRef.current, cursorRef.current);
-            // We don't reset cursorRef here because purely content changes might trigger unrelated re-renders
-            // But usually safely reset it if we want, but keeping it is safer for rapid typing
-        }
-    });
+    // Removed: Replaced by AutoResizingTextarea which handles local state natively
 
     const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code' | 'link') => {
         const textarea = textareaRef.current;
@@ -452,14 +492,11 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                                     </div>
                                 )}
                             </div>
-                            <textarea
+                            <AutoResizingTextarea
                                 ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => {
-                                    cursorRef.current = e.target.selectionStart;
-                                    onChange({ ...section, content: e.target.value } as any);
-                                }}
-                                className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none' : ''}`}
+                                onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
+                                className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none overflow-hidden' : ''}`}
                                 rows={section.type === 'heading' ? 3 : undefined}
                                 placeholder="Enter your content here..."
                             />
@@ -532,14 +569,11 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     <div className="flex flex-col h-full gap-4">
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Quote Text</label>
-                            <textarea
+                            <AutoResizingTextarea
                                 ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => {
-                                    cursorRef.current = e.target.selectionStart;
-                                    onChange({ ...section, content: e.target.value });
-                                }}
-                                className={`${inputClass} flex-1 resize-none`}
+                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                className={`${inputClass} flex-1 resize-none overflow-hidden`}
                                 placeholder="Enter the quote..."
                             />
                         </div>
@@ -573,14 +607,11 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     <div className="flex flex-col h-full gap-4">
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Alert Content</label>
-                            <textarea
+                            <AutoResizingTextarea
                                 ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => {
-                                    cursorRef.current = e.target.selectionStart;
-                                    onChange({ ...section, content: e.target.value });
-                                }}
-                                className={`${inputClass} flex-1 resize-none`}
+                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                className={`${inputClass} flex-1 resize-none overflow-hidden`}
                                 placeholder="Alert message..."
                             />
                         </div>
