@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, Fragment } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
     Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
-    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2
 } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 import { useDarkMode, getScrollbarStyle } from '../hooks/useDarkMode';
+import TableDesigner from './TableDesigner';
 
 // Sidebar Item Component - Click to add
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
@@ -192,6 +193,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [linkPopover, setLinkPopover] = useState<{ isOpen: boolean; text: string; url: string; start: number; end: number } | null>(null);
+    const [tableModalOpen, setTableModalOpen] = useState(false);
     const isDark = useDarkMode();
     const scrollbarStyle = getScrollbarStyle(isDark);
 
@@ -262,7 +264,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const inputClass = "w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-slate-900 dark:text-white text-sm shadow-sm";
     const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 ml-0.5";
-    const sectionTitleClass = "text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3";
+
 
 
 
@@ -286,46 +288,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     };
 
     // Table helpers
-    const updateTableHeader = (index: number, value: string) => {
-        if (section.type !== 'table') return;
-        const newHeaders = [...section.headers];
-        newHeaders[index] = value;
-        onChange({ ...section, headers: newHeaders });
-    };
 
-    const updateTableCell = (rowIndex: number, colIndex: number, value: string) => {
-        if (section.type !== 'table') return;
-        const newRows = section.rows.map((row, ri) =>
-            ri === rowIndex ? row.map((cell, ci) => ci === colIndex ? value : cell) : row
-        );
-        onChange({ ...section, rows: newRows });
-    };
-
-    const addTableColumn = () => {
-        if (section.type !== 'table') return;
-        const newHeaders = [...section.headers, `Col ${section.headers.length + 1}`];
-        const newRows = section.rows.map(row => [...row, '']);
-        onChange({ ...section, headers: newHeaders, rows: newRows });
-    };
-
-    const removeTableColumn = (colIndex: number) => {
-        if (section.type !== 'table' || section.headers.length <= 1) return;
-        const newHeaders = section.headers.filter((_, i) => i !== colIndex);
-        const newRows = section.rows.map(row => row.filter((_, i) => i !== colIndex));
-        onChange({ ...section, headers: newHeaders, rows: newRows });
-    };
-
-    const addTableRow = () => {
-        if (section.type !== 'table') return;
-        const newRow = section.headers.map(() => '');
-        onChange({ ...section, rows: [...section.rows, newRow] });
-    };
-
-    const removeTableRow = (rowIndex: number) => {
-        if (section.type !== 'table') return;
-        const newRows = section.rows.filter((_, i) => i !== rowIndex);
-        onChange({ ...section, rows: newRows });
-    };
 
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
@@ -721,113 +684,61 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 {/* Modern Table Editor */}
                 {section.type === 'table' && (
                     <div className="space-y-6">
-                        <div>
-                            <label className={labelClass}>Table Caption</label>
-                            <input
-                                type="text"
-                                value={section.caption || ''}
-                                onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                                className={inputClass}
-                                placeholder="Table description..."
-                            />
+
+
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Table Configuration</h4>
+                            <button
+                                onClick={() => setTableModalOpen(true)}
+                                className="text-xs flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1.5 rounded-lg transition-colors"
+                            >
+                                <Maximize2 className="w-3.5 h-3.5" />
+                                Expand Editor
+                            </button>
                         </div>
 
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between">
-                                <span className={sectionTitleClass.replace('mb-3', '')}>Table Data</span>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={addTableColumn}
-                                        className="px-2.5 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1 transition-colors"
-                                    >
-                                        <Plus className="w-3.5 h-3.5" /> Column
-                                    </button>
-                                    <button
-                                        onClick={addTableRow}
-                                        className="px-2.5 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1 transition-colors"
-                                    >
-                                        <Plus className="w-3.5 h-3.5" /> Row
-                                    </button>
-                                </div>
-                            </div>
+                        <TableDesigner section={section} onChange={onChange} />
 
-                            {/* Scrollable Data Grid Container */}
-                            <div className="relative border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-                                <div
-                                    className="overflow-x-auto"
-                                    style={scrollbarStyle}
-                                >
-                                    <div className="min-w-max p-4">
-                                        <div
-                                            className="grid gap-x-2 gap-y-3"
-                                            style={{
-                                                gridTemplateColumns: `40px ${section.headers.map(() => 'minmax(180px, 1fr)').join(' ')} 40px`
-                                            }}
-                                        >
-                                            {/* Header Row */}
-                                            <div className="flex items-center justify-center font-mono text-xs text-slate-400">#</div>
-                                            {section.headers.map((header, index) => (
-                                                <div key={`h-${index}`} className="relative group">
-                                                    <input
-                                                        type="text"
-                                                        value={header}
-                                                        onChange={(e) => updateTableHeader(index, e.target.value)}
-                                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal"
-                                                        placeholder={`Header ${index + 1}`}
-                                                    />
-                                                    {section.headers.length > 1 && (
-                                                        <button
-                                                            onClick={() => removeTableColumn(index)}
-                                                            className="absolute -top-2 -right-2 p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
-                                                            title="Remove Column"
-                                                        >
-                                                            <X className="w-3 h-3" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                            <div className="w-10"></div> {/* Spacer for Row Action */}
-
-                                            {/* Data Rows */}
-                                            {section.rows.map((row, rowIndex) => (
-                                                <Fragment key={rowIndex}>
-                                                    {/* Row Index */}
-                                                    <div className="flex items-center justify-center font-mono text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                                                        {rowIndex + 1}
-                                                    </div>
-
-                                                    {/* Cells */}
-                                                    {row.map((cell, colIndex) => (
-                                                        <input
-                                                            key={`c-${rowIndex}-${colIndex}`}
-                                                            type="text"
-                                                            value={cell}
-                                                            onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
-                                                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                                            placeholder="..."
-                                                        />
-                                                    ))}
-
-                                                    {/* Row Action */}
-                                                    <div className="flex items-center justify-center">
-                                                        <button
-                                                            onClick={() => removeTableRow(rowIndex)}
-                                                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                            title="Delete Row"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </Fragment>
-                                            ))}
+                        {/* Full Screen Table Modal */}
+                        {tableModalOpen && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
+                                    {/* Modal Header */}
+                                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                                <Table className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Table Editor</h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Advanced table data management</p>
+                                            </div>
                                         </div>
+                                        <button
+                                            onClick={() => setTableModalOpen(false)}
+                                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {/* Modal Content */}
+                                    <div className="flex-1 overflow-hidden p-6 bg-white dark:bg-slate-800">
+                                        <TableDesigner section={section} onChange={onChange} isModal={true} />
+                                    </div>
+
+                                    {/* Modal Footer */}
+                                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                                        <button
+                                            onClick={() => setTableModalOpen(false)}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm"
+                                        >
+                                            Done Editing
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
-                                Scroll horizontally to view more columns. Headers are editable.
-                            </p>
-                        </div>
+                        )}
                     </div>
                 )}
 
