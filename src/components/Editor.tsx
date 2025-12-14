@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, Calendar, Tag, Globe,
@@ -350,7 +350,38 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     <div className={section.type !== 'heading' ? "flex flex-col h-full gap-2" : "space-y-4"}>
                         <div className={section.type !== 'heading' ? "flex-1 flex flex-col min-h-[300px]" : ""}>
                             <div className="flex items-center justify-between mb-2">
-                                <label className={labelClass}>Content</label>
+                                {/* Code Language Selector - Moved to Top */}
+                                {section.type === 'code' && (
+                                    <div className="flex-1 mr-4">
+                                        <select
+                                            value={section.language}
+                                            onChange={(e) => onChange({ ...section, language: e.target.value })}
+                                            className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                        >
+                                            <optgroup label="Web">
+                                                <option value="javascript">JavaScript</option>
+                                                <option value="typescript">TypeScript</option>
+                                                <option value="html">HTML</option>
+                                                <option value="css">CSS</option>
+                                                <option value="jsx">JSX</option>
+                                                <option value="tsx">TSX</option>
+                                            </optgroup>
+                                            <optgroup label="Other">
+                                                <option value="python">Python</option>
+                                                <option value="java">Java</option>
+                                                <option value="cpp">C++</option>
+                                                <option value="csharp">C#</option>
+                                                <option value="go">Go</option>
+                                                <option value="rust">Rust</option>
+                                                <option value="sql">SQL</option>
+                                                <option value="bash">Bash</option>
+                                                <option value="json">JSON</option>
+                                                <option value="markdown">Markdown</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                )}
+                                {section.type === 'text' && <label className={labelClass}>Content</label>}
                                 {/* Text Formatting Toolbar */}
                                 {section.type === 'text' && (
                                     <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 shadow-sm">
@@ -512,38 +543,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     </div>
                 )}
 
-                {/* Code Language */}
-                {section.type === 'code' && (
-                    <div>
-                        <label className={labelClass}>Programming Language</label>
-                        <select
-                            value={section.language}
-                            onChange={(e) => onChange({ ...section, language: e.target.value })}
-                            className={inputClass}
-                        >
-                            <optgroup label="Web Development">
-                                <option value="javascript">JavaScript</option>
-                                <option value="typescript">TypeScript</option>
-                                <option value="html">HTML</option>
-                                <option value="css">CSS</option>
-                                <option value="jsx">JSX (React)</option>
-                                <option value="tsx">TSX (React + TS)</option>
-                            </optgroup>
-                            <optgroup label="Common">
-                                <option value="python">Python</option>
-                                <option value="java">Java</option>
-                                <option value="cpp">C++</option>
-                                <option value="csharp">C#</option>
-                                <option value="go">Go</option>
-                                <option value="rust">Rust</option>
-                                <option value="sql">SQL</option>
-                                <option value="bash">Bash</option>
-                                <option value="json">JSON</option>
-                                <option value="markdown">Markdown</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                )}
+
 
                 {/* Quote */}
                 {section.type === 'quote' && (
@@ -713,11 +713,11 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     </div>
                 )}
 
-                {/* Table */}
+                {/* Modern Table Editor */}
                 {section.type === 'table' && (
                     <div className="space-y-6">
                         <div>
-                            <label className={labelClass}>Table Caption (optional)</label>
+                            <label className={labelClass}>Table Caption</label>
                             <input
                                 type="text"
                                 value={section.caption || ''}
@@ -727,91 +727,98 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                             />
                         </div>
 
-                        {/* Headers */}
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <span className={sectionTitleClass.replace('mb-3', '')}>Columns ({section.headers.length})</span>
-                                <button
-                                    onClick={addTableColumn}
-                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Plus className="w-3.5 h-3.5" /> Add
-                                </button>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                <span className={sectionTitleClass.replace('mb-3', '')}>Table Data</span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={addTableColumn}
+                                        className="px-2.5 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1 transition-colors"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Column
+                                    </button>
+                                    <button
+                                        onClick={addTableRow}
+                                        className="px-2.5 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1 transition-colors"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Row
+                                    </button>
+                                </div>
                             </div>
-                            <div className="space-y-2.5">
-                                {section.headers.map((header, index) => (
-                                    <div key={index} className="flex gap-2 items-center group">
-                                        <input
-                                            type="text"
-                                            value={header}
-                                            onChange={(e) => updateTableHeader(index, e.target.value)}
-                                            className={`${inputClass} flex-1`}
-                                            placeholder={`Header ${index + 1}`}
-                                        />
-                                        {section.headers.length > 1 && (
-                                            <button
-                                                onClick={() => removeTableColumn(index)}
-                                                className="flex-none p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                title="Remove column"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        {/* Rows */}
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <span className={sectionTitleClass.replace('mb-3', '')}>Rows ({section.rows.length})</span>
-                                <button
-                                    onClick={addTableRow}
-                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Plus className="w-3.5 h-3.5" /> Add
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {section.rows.map((row, rowIndex) => (
-                                    <div key={rowIndex} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 group relative">
-                                        {/* Action: Delete Row */}
-                                        <button
-                                            onClick={() => removeTableRow(rowIndex)}
-                                            className="absolute -top-2 -right-2 p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
-                                            title="Remove row"
+                            {/* Scrollable Data Grid Container */}
+                            <div className="relative border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                                <div className="overflow-x-auto">
+                                    <div className="min-w-max p-4">
+                                        <div
+                                            className="grid gap-x-2 gap-y-3"
+                                            style={{
+                                                gridTemplateColumns: `40px ${section.headers.map(() => 'minmax(180px, 1fr)').join(' ')} 40px`
+                                            }}
                                         >
-                                            <X className="w-3 h-3" />
-                                        </button>
+                                            {/* Header Row */}
+                                            <div className="flex items-center justify-center font-mono text-xs text-slate-400">#</div>
+                                            {section.headers.map((header, index) => (
+                                                <div key={`h-${index}`} className="relative group">
+                                                    <input
+                                                        type="text"
+                                                        value={header}
+                                                        onChange={(e) => updateTableHeader(index, e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal"
+                                                        placeholder={`Header ${index + 1}`}
+                                                    />
+                                                    {section.headers.length > 1 && (
+                                                        <button
+                                                            onClick={() => removeTableColumn(index)}
+                                                            className="absolute -top-2 -right-2 p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                            title="Remove Column"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            <div className="w-10"></div> {/* Spacer for Row Action */}
 
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-700">
-                                                Row {rowIndex + 1}
-                                            </span>
-                                        </div>
-                                        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${section.headers.length}, 1fr)` }}>
-                                            {row.map((cell, colIndex) => (
-                                                <input
-                                                    key={colIndex}
-                                                    type="text"
-                                                    value={cell}
-                                                    onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
-                                                    className={`${inputClass} text-xs py-2`}
-                                                    placeholder={section.headers[colIndex]}
-                                                />
+                                            {/* Data Rows */}
+                                            {section.rows.map((row, rowIndex) => (
+                                                <Fragment key={rowIndex}>
+                                                    {/* Row Index */}
+                                                    <div className="flex items-center justify-center font-mono text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                                        {rowIndex + 1}
+                                                    </div>
+
+                                                    {/* Cells */}
+                                                    {row.map((cell, colIndex) => (
+                                                        <input
+                                                            key={`c-${rowIndex}-${colIndex}`}
+                                                            type="text"
+                                                            value={cell}
+                                                            onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
+                                                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                            placeholder="..."
+                                                        />
+                                                    ))}
+
+                                                    {/* Row Action */}
+                                                    <div className="flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => removeTableRow(rowIndex)}
+                                                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                            title="Delete Row"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </Fragment>
                                             ))}
                                         </div>
                                     </div>
-                                ))}
-                                {section.rows.length === 0 && (
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-center">
-                                        <p className="text-sm text-slate-400 dark:text-slate-500">
-                                            No rows.
-                                        </p>
-                                    </div>
-                                )}
+                                </div>
                             </div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
+                                Scroll horizontally to view more columns. Headers are editable.
+                            </p>
                         </div>
                     </div>
                 )}
@@ -832,6 +839,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                         </p>
                     </div>
                 )}
+
             </div>
         </div>
     );
@@ -846,13 +854,13 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         switch (type) {
             case 'text': return { type: 'text', content: 'New text paragraph' };
             case 'heading': return { type: 'heading', content: 'New Heading', level: 2 };
-            case 'image': return { type: 'image', url: 'https://via.placeholder.com/800x400', alt: 'Placeholder', caption: '' };
+            case 'image': return { type: 'image', url: 'https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp', alt: 'Placeholder', caption: '' };
             case 'code': return { type: 'code', content: 'console.log("Hello World");', language: 'javascript' };
             case 'quote': return { type: 'quote', content: 'A wise quote.', author: '', source: '' };
             case 'list': return { type: 'list', items: ['Item 1', 'Item 2', 'Item 3'], ordered: false };
             case 'table': return { type: 'table', headers: ['Column 1', 'Column 2'], rows: [['Cell 1', 'Cell 2']], caption: '' };
             case 'alert': return { type: 'alert', content: 'Important information!', variant: 'info' };
-            case 'link': return { type: 'link', content: 'Click here', url: 'https://example.com' };
+            case 'link': return { type: 'link', content: 'Click here', url: 'https://mustafabaser.net' };
             case 'divider': return { type: 'divider' };
             default: return { type: 'text', content: '' };
         }
