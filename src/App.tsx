@@ -244,7 +244,7 @@ function App() {
       slug: post.slug,
       category: post.category,
       excerpt: post.excerpt,
-      content: post.content,
+      content: post.content.map(({ id, ...rest }) => rest),
       imageUrl: post.imageUrl,
       publishedAt: post.publishedAt,
       readTime: post.readTime,
