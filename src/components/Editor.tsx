@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import type { ContentSection } from '../types/blog';
 import {
-    Type, Image as ImageIcon, Calendar, Tag, Globe,
-    User, FileText, Link as LinkIcon, Clock, Hash,
-    Layout, Search, X, Plus, Trash2, GripVertical,
+    Type, Image as ImageIcon, X, Plus, Trash2,
     Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
-    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon
 } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
+import { useDarkMode, getScrollbarStyle } from '../hooks/useDarkMode';
 
 // Sidebar Item Component - Click to add
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
@@ -193,6 +192,8 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [linkPopover, setLinkPopover] = useState<{ isOpen: boolean; text: string; url: string; start: number; end: number } | null>(null);
+    const isDark = useDarkMode();
+    const scrollbarStyle = getScrollbarStyle(isDark);
 
     const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code' | 'link') => {
         const textarea = textareaRef.current;
@@ -240,7 +241,8 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
         if (!linkPopover || !textareaRef.current) return;
 
         const { text, url, start, end } = linkPopover;
-        const currentContent = section.content || ''; // Handle potential null content
+        // Safely access content - only text/code/heading/quote/alert sections have content
+        const currentContent = ('content' in section && typeof section.content === 'string') ? section.content : '';
 
         const linkMarkdown = `[${text || 'link'}](${url || 'https://'})`;
         const newText = currentContent.substring(0, start) + linkMarkdown + currentContent.substring(end);
@@ -343,7 +345,10 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            <div
+                className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
+                style={scrollbarStyle}
+            >
 
                 {/* Text, Code, Heading content - Expanded for Text/Code */}
                 {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
@@ -748,7 +753,10 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
                             {/* Scrollable Data Grid Container */}
                             <div className="relative border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-                                <div className="overflow-x-auto">
+                                <div
+                                    className="overflow-x-auto"
+                                    style={scrollbarStyle}
+                                >
                                     <div className="min-w-max p-4">
                                         <div
                                             className="grid gap-x-2 gap-y-3"
@@ -849,6 +857,8 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const [showSidebar, setShowSidebar] = useState(false);
     const [showProperties, setShowProperties] = useState(false);
     const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+    const isDark = useDarkMode();
+    const scrollbarStyle = getScrollbarStyle(isDark);
 
     const createSection = (type: string): ContentSection => {
         switch (type) {
@@ -995,7 +1005,10 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                         Components
                     </h2>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div
+                    className="flex-1 overflow-y-auto p-3 space-y-2"
+                    style={scrollbarStyle}
+                >
                     <SidebarItem icon={Type} label="Text" onClick={() => addSection('text')} />
                     <SidebarItem icon={Heading1} label="Heading" onClick={() => addSection('heading')} />
                     <SidebarItem icon={ImageIcon} label="Image" onClick={() => addSection('image')} />
@@ -1040,7 +1053,10 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                         </button>
                     </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+                <div
+                    className="flex-1 overflow-y-auto p-3 sm:p-6"
+                    style={scrollbarStyle}
+                >
                     <div className="max-w-3xl mx-auto space-y-3">
                         {sections.map((section, index) => (
                             <CanvasItem

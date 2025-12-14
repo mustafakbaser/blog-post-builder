@@ -99,12 +99,61 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background-color: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
+  background-color: var(--color-border-hover);
+}
+
+/* Force Dark Mode Scrollbar Colors */
+html.dark ::-webkit-scrollbar-thumb {
+  background-color: #475569 !important; /* Slate-600 */
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b !important; /* Slate-500 */
+}
+
+/* For Firefox */
+html.dark * {
+  scrollbar-color: #475569 transparent;
+}
+
+/* Custom Scrollbar Class for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #f1f5f9; /* Light bg */
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Dark Mode for Custom Scrollbar - Forced Override */
+html.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #1e293b !important;
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #475569 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b !important;
 }
 
 /* Focus ring styles */
