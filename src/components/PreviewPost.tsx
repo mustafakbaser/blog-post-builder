@@ -10,9 +10,36 @@ const CodeBlock = ({ code, language }: { code: string; language: string }) => (
     </pre>
 );
 
-const parseMarkdownLinks = (text: string) => {
-    // Simple mock implementation
-    return text;
+// Simple markdown parser for inline styles
+const parseMarkdown = (text: string) => {
+    // Split by patterns: code, bold, italic, strikethrough
+    // Order matters: code first to prevent parsing inside code blocks
+    const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|_[^_]+_|~[^~]+~)/g);
+
+    return parts.map((part, index) => {
+        // Code: `text`
+        if (part.startsWith('`') && part.endsWith('`')) {
+            return (
+                <code key={index} className="px-1.5 py-0.5 mx-0.5 rounded-md bg-slate-800 text-red-400 font-mono text-sm font-medium">
+                    {part.slice(1, -1)}
+                </code>
+            );
+        }
+        // Bold: **text**
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={index} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+        }
+        // Italic: _text_
+        if (part.startsWith('_') && part.endsWith('_')) {
+            return <em key={index} className="italic">{part.slice(1, -1)}</em>;
+        }
+        // Strikethrough: ~text~
+        if (part.startsWith('~') && part.endsWith('~')) {
+            return <del key={index} className="line-through opacity-70">{part.slice(1, -1)}</del>;
+        }
+        // Normal text
+        return part;
+    });
 };
 
 const blogPostContent = {
@@ -42,7 +69,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
     function renderContent(section: ContentSection) {
         switch (section.type) {
             case 'text':
-                return <p className="mb-6 text-slate-700 dark:text-slate-300 leading-relaxed break-words">{parseMarkdownLinks(section.content)}</p>;
+                return <p className="mb-6 text-slate-700 dark:text-slate-300 leading-relaxed break-words">{parseMarkdown(section.content)}</p>;
             case 'code':
                 return <CodeBlock code={section.content} language={section.language} />;
             case 'heading':
@@ -59,7 +86,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                     <HeadingTag id={section.content.toLowerCase().replace(/\s+/g, '-')}
                         className={`${headingClasses} text-slate-900 dark:text-white scroll-mt-20 break-words`}
                     >
-                        {parseMarkdownLinks(section.content)}
+                        {parseMarkdown(section.content)}
                     </HeadingTag>
                 );
             case 'link':
@@ -84,7 +111,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
             case 'quote':
                 return (
                     <blockquote className="my-8 pl-4 border-l-4 border-indigo-500 dark:border-indigo-400">
-                        <p className="text-lg italic text-slate-700 dark:text-slate-300 break-words">{parseMarkdownLinks(section.content)}</p>
+                        <p className="text-lg italic text-slate-700 dark:text-slate-300 break-words">{parseMarkdown(section.content)}</p>
                         {(section.author || section.source) && (
                             <footer className="mt-2 text-sm text-slate-500 dark:text-slate-400 break-words">
                                 {section.author && <span className="font-medium">{section.author}</span>}
@@ -99,7 +126,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                 return (
                     <ListTag className={`my-6 pl-6 space-y-2 ${section.ordered ? 'list-decimal' : 'list-disc'}`}>
                         {section.items.map((item, index) => (
-                            <li key={index} className="text-slate-700 dark:text-slate-300 break-words">{parseMarkdownLinks(item)}</li>
+                            <li key={index} className="text-slate-700 dark:text-slate-300 break-words">{parseMarkdown(item)}</li>
                         ))}
                     </ListTag>
                 );
@@ -114,7 +141,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                                 <tr>
                                     {section.headers.map((header, index) => (
                                         <th key={index} className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                                            {parseMarkdownLinks(header)}
+                                            {parseMarkdown(header)}
                                         </th>
                                     ))}
                                 </tr>
@@ -124,7 +151,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                                     <tr key={rowIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         {row.map((cell, cellIndex) => (
                                             <td key={cellIndex} className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 break-words">
-                                                {parseMarkdownLinks(cell)}
+                                                {parseMarkdown(cell)}
                                             </td>
                                         ))}
                                     </tr>
@@ -145,7 +172,7 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                     <div className={`my-6 p-4 rounded-lg border ${alertStyles.bg} ${alertStyles.border}`}>
                         <div className="flex">
                             <Icon className={`h-5 w-5 ${alertStyles.text} mr-3 flex-shrink-0 mt-0.5`} />
-                            <div className={`${alertStyles.text} break-words flex-1`}>{parseMarkdownLinks(section.content)}</div>
+                            <div className={`${alertStyles.text} break-words flex-1`}>{parseMarkdown(section.content)}</div>
                         </div>
                     </div>
                 );

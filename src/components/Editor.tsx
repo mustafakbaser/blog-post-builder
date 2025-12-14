@@ -1,6 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ContentSection } from '../types/blog';
-import { Type, Image as ImageIcon, Code, Quote, List, Table, AlertCircle, Link as LinkIcon, Minus, Heading1, XCircle, Plus, ChevronUp, ChevronDown, Settings, Trash2, PanelLeftOpen, PanelRightOpen, X, Copy } from 'lucide-react';
+import {
+    Type, Image as ImageIcon, Calendar, Tag, Globe,
+    User, FileText, Link as LinkIcon, Clock, Hash,
+    Layout, Search, X, Plus, Trash2, GripVertical,
+    Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle
+} from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 
 // Sidebar Item Component - Click to add
@@ -185,6 +191,39 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
         );
     }
 
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code') => {
+        const textarea = textareaRef.current;
+        if (!textarea || !onChange) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selectedText = text.substring(start, end);
+
+        let wrapper = '';
+        switch (format) {
+            case 'bold': wrapper = '**'; break;
+            case 'italic': wrapper = '_'; break;
+            case 'strike': wrapper = '~'; break;
+            case 'code': wrapper = '`'; break;
+        }
+
+        const newText = text.substring(0, start) + wrapper + selectedText + wrapper + text.substring(end);
+
+        // Update content
+        onChange({ ...section, content: newText } as any);
+
+        // Restore focus and selection
+        requestAnimationFrame(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                textareaRef.current.setSelectionRange(start + wrapper.length, end + wrapper.length);
+            }
+        });
+    };
+
     const inputClass = "w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-slate-900 dark:text-white text-sm shadow-sm";
     const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 ml-0.5";
     const sectionTitleClass = "text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3";
@@ -276,8 +315,45 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                 {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
                     <div className={section.type !== 'heading' ? "flex flex-col h-full gap-2" : "space-y-4"}>
                         <div className={section.type !== 'heading' ? "flex-1 flex flex-col min-h-[300px]" : ""}>
-                            <label className={labelClass}>Content</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className={labelClass}>Content</label>
+                                {/* Text Formatting Toolbar */}
+                                {section.type === 'text' && (
+                                    <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 shadow-sm">
+                                        <button
+                                            onClick={() => applyFormat('bold')}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
+                                            title="Bold"
+                                        >
+                                            <Bold className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => applyFormat('italic')}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
+                                            title="Italic"
+                                        >
+                                            <Italic className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => applyFormat('strike')}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
+                                            title="Strikethrough"
+                                        >
+                                            <Strikethrough className="w-4 h-4" />
+                                        </button>
+                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                                        <button
+                                            onClick={() => applyFormat('code')}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
+                                            title="Inline Code"
+                                        >
+                                            <Code className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                             <textarea
+                                ref={textareaRef}
                                 value={section.content}
                                 onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
                                 className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none' : ''}`}
