@@ -320,7 +320,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                             <div className="flex items-center justify-between mb-2">
                                 {/* Code Language Selector - Moved to Top */}
                                 {section.type === 'code' && (
-                                    <div className="flex-1 mr-4">
+                                    <div className="flex-1">
                                         <select
                                             value={section.language}
                                             onChange={(e) => onChange({ ...section, language: e.target.value })}
