@@ -3,8 +3,25 @@ import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
     Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
-    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2, GripVertical
 } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import ConfirmDialog from './ConfirmDialog';
 import { useDarkMode, getScrollbarStyle } from '../hooks/useDarkMode';
 import TableDesigner from './TableDesigner';
@@ -24,6 +41,44 @@ function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string;
             </span>
             <Plus className="w-4 h-4 text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-all" />
         </button>
+    );
+}
+
+// Sortable Item Wrapper
+function SortableCanvasItem(props: any) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: props.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 999 : 'auto',
+        position: 'relative' as const,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className={isDragging ? 'z-50' : ''}>
+            <div className="flex items-start gap-2">
+                {/* Drag Handle */}
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="mt-4 p-1.5 text-slate-400 hover:text-indigo-500 cursor-grab active:cursor-grabbing hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                >
+                    <GripVertical className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <CanvasItem {...props} />
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -85,8 +140,9 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
                 }`}
             onClick={onSelect}
         >
-            {/* Move Controls */}
+            {/* Move Controls - Removed in favor of Drag & Drop (Optional: Keep for accessibility) */}
             <div className="flex flex-col gap-1">
+                {/* Kept available for accessibility primarily */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                     disabled={isFirst}
@@ -824,53 +880,56 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const isDark = useDarkMode();
     const scrollbarStyle = getScrollbarStyle(isDark);
 
+    // Migration: Ensure all sections have IDs
+    useEffect(() => {
+        const hasMissingIds = sections.some(s => !s.id);
+        if (hasMissingIds) {
+            const migrated = sections.map(s => s.id ? s : { ...s, id: crypto.randomUUID() });
+            setSections(migrated);
+        }
+    }, [sections]);
+
     const createSection = (type: string): ContentSection => {
+        const id = crypto.randomUUID();
         switch (type) {
-            case 'text': return { type: 'text', content: 'New text paragraph' };
-            case 'heading': return { type: 'heading', content: 'New Heading', level: 2 };
-            case 'image': return { type: 'image', url: 'https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp', alt: 'Placeholder', caption: '' };
-            case 'code': return { type: 'code', content: 'console.log("Hello World");', language: 'javascript' };
-            case 'quote': return { type: 'quote', content: 'A wise quote.', author: '', source: '' };
-            case 'list': return { type: 'list', items: ['Item 1', 'Item 2', 'Item 3'], ordered: false };
-            case 'table': return { type: 'table', headers: ['Column 1', 'Column 2'], rows: [['Cell 1', 'Cell 2']], caption: '' };
-            case 'alert': return { type: 'alert', content: 'Important information!', variant: 'info' };
-            case 'link': return { type: 'link', content: 'Click here', url: 'https://mustafabaser.net' };
-            case 'divider': return { type: 'divider' };
-            default: return { type: 'text', content: '' };
+            case 'text': return { id, type: 'text', content: 'New text paragraph' };
+            case 'heading': return { id, type: 'heading', content: 'New Heading', level: 2 };
+            case 'image': return { id, type: 'image', url: 'https://res.cloudinary.com/mustafakbaser/image/upload/v1764964904/Blog-Builder-App-Screenshot_rtx7ao.webp', alt: 'Placeholder', caption: '' };
+            case 'code': return { id, type: 'code', content: 'console.log("Hello World");', language: 'javascript' };
+            case 'quote': return { id, type: 'quote', content: 'A wise quote.', author: '', source: '' };
+            case 'list': return { id, type: 'list', items: ['Item 1', 'Item 2', 'Item 3'], ordered: false };
+            case 'table': return { id, type: 'table', headers: ['Column 1', 'Column 2'], rows: [['Cell 1', 'Cell 2']], caption: '' };
+            case 'alert': return { id, type: 'alert', content: 'Important information!', variant: 'info' };
+            case 'link': return { id, type: 'link', content: 'Click here', url: 'https://mustafabaser.net' };
+            case 'divider': return { id, type: 'divider' };
+            default: return { id, type: 'text', content: '' };
         }
     };
 
     const addSection = (type: string) => {
         const newSection = createSection(type);
         setSections([...sections, newSection]);
-        onSelect(`section-${sections.length}`);
+        onSelect(newSection.id);
     };
 
-    const updateSection = (index: number, updated: ContentSection) => {
-        const newSections = [...sections];
-        newSections[index] = updated;
-        setSections(newSections);
+    const updateSection = (id: string, updated: ContentSection) => {
+        setSections(sections.map(s => s.id === id ? updated : s));
     };
 
     const confirmDelete = () => {
         if (sectionToDelete === null) return;
-        const newSections = [...sections];
-        newSections.splice(sectionToDelete, 1);
-        setSections(newSections);
-        if (selectedId === `section-${sectionToDelete}`) onSelect(null);
+        setSections(sections.filter((_, i) => i !== sectionToDelete));
         setSectionToDelete(null);
-    };
-
-    const deleteSection = (index: number) => {
-        setSectionToDelete(index);
+        onSelect(null);
     };
 
     const duplicateSection = (index: number) => {
         const newSections = [...sections];
         const sectionToCopy = JSON.parse(JSON.stringify(newSections[index]));
+        sectionToCopy.id = crypto.randomUUID(); // Generate new ID for copy
         newSections.splice(index + 1, 0, sectionToCopy);
         setSections(newSections);
-        onSelect(`section-${index + 1}`);
+        onSelect(sectionToCopy.id);
     };
 
     const moveUp = (index: number) => {
@@ -878,7 +937,6 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         const newSections = [...sections];
         [newSections[index - 1], newSections[index]] = [newSections[index], newSections[index - 1]];
         setSections(newSections);
-        onSelect(`section-${index - 1}`);
     };
 
     const moveDown = (index: number) => {
@@ -886,11 +944,34 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         const newSections = [...sections];
         [newSections[index], newSections[index + 1]] = [newSections[index + 1], newSections[index]];
         setSections(newSections);
-        onSelect(`section-${index + 1}`);
     };
 
-    const selectedIndex = selectedId ? parseInt(selectedId.replace('section-', '')) : -1;
-    const selectedSection = selectedIndex >= 0 ? sections[selectedIndex] : null;
+    // Fix selectedSection derivation
+    const selectedSection = sections.find(s => s.id === selectedId) || null;
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            const oldIndex = sections.findIndex((s) => s.id === active.id);
+            const newIndex = sections.findIndex((s) => s.id === over?.id);
+
+            if (oldIndex !== -1 && newIndex !== -1) {
+                setSections(arrayMove(sections, oldIndex, newIndex));
+            }
+        }
+    };
 
     const handleAddSection = (type: string) => {
         addSection(type);
@@ -956,7 +1037,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                         </div>
                         <PropertiesPanel
                             section={selectedSection}
-                            onChange={(updated) => updateSection(selectedIndex, updated)}
+                            onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)}
                         />
                     </div>
                 </div>
@@ -1022,36 +1103,41 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                     style={scrollbarStyle}
                 >
                     <div className="max-w-3xl mx-auto space-y-3">
-                        {sections.map((section, index) => (
-                            <CanvasItem
-                                key={`section-${index}`}
-                                section={section}
-                                onDelete={() => deleteSection(index)}
-                                onDuplicate={() => duplicateSection(index)}
-                                onSelect={() => onSelect(`section-${index}`)}
-                                onMoveUp={() => moveUp(index)}
-                                onMoveDown={() => moveDown(index)}
-                                isSelected={selectedId === `section-${index}`}
-                                isFirst={index === 0}
-                                isLast={index === sections.length - 1}
-                            />
-                        ))}
-                        {sections.length === 0 && (
-                            <div className="text-center py-12 sm:py-16 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800/50">
-                                <div className="p-3 sm:p-4 bg-slate-100 dark:bg-slate-700 rounded-xl w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 flex items-center justify-center">
-                                    <Code className="w-6 h-6 sm:w-8 sm:h-8 text-slate-500 dark:text-slate-400" />
-                                </div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm sm:text-base">
-                                    <span className="lg:hidden">Tap </span>
-                                    <span className="hidden lg:inline">Click components from the sidebar to </span>
-                                    <PanelLeftOpen className="w-4 h-4 inline lg:hidden mx-1" />
-                                    <span className="lg:hidden"> to add components</span>
-                                    <span className="hidden lg:inline">start</span>
-                                </p>
-                                <p className="text-slate-400 dark:text-slate-500 text-xs sm:text-sm mt-1">
-                                    Build your blog post visually
-                                </p>
+                        {sections.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl m-4 bg-slate-100/50 dark:bg-slate-800/30">
+                                <Plus className="w-12 h-12 mb-4 opacity-50" />
+                                <p className="text-lg font-medium">Start building your post</p>
+                                <p className="text-sm opacity-70">Select components from the sidebar</p>
                             </div>
+                        ) : (
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={sections}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    <div className="max-w-3xl mx-auto space-y-4 pb-20">
+                                        {sections.map((section, index) => (
+                                            <SortableCanvasItem
+                                                key={section.id}
+                                                id={section.id}
+                                                section={section}
+                                                onDelete={() => setSectionToDelete(index)}
+                                                onDuplicate={() => duplicateSection(index)}
+                                                onSelect={() => onSelect(section.id)}
+                                                onMoveUp={() => moveUp(index)}
+                                                onMoveDown={() => moveDown(index)}
+                                                isSelected={selectedId === section.id}
+                                                isFirst={index === 0}
+                                                isLast={index === sections.length - 1}
+                                            />
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
                         )}
                     </div>
                 </div>
@@ -1062,7 +1148,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                 {selectedSection ? (
                     <PropertiesPanel
                         section={selectedSection}
-                        onChange={(updated) => updateSection(selectedIndex, updated)}
+                        onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)}
                     />
                 ) : (
                     <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 p-8 text-center">

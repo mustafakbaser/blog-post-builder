@@ -1,4 +1,5 @@
 export interface ImageSection {
+    id: string;
     type: 'image';
     url: string;
     alt: string;
@@ -6,6 +7,7 @@ export interface ImageSection {
 }
 
 export interface QuoteSection {
+    id: string;
     type: 'quote';
     content: string;
     author?: string;
@@ -13,12 +15,14 @@ export interface QuoteSection {
 }
 
 export interface ListSection {
+    id: string;
     type: 'list';
     items: string[];
     ordered: boolean;
 }
 
 export interface TableSection {
+    id: string;
     type: 'table';
     headers: string[];
     rows: string[][];
@@ -26,35 +30,41 @@ export interface TableSection {
 }
 
 export interface AlertSection {
+    id: string;
     type: 'alert';
     content: string;
     variant: 'info' | 'warning' | 'success' | 'error';
 }
 
 export interface CodeSection {
+    id: string;
     type: 'code';
     content: string;
     language: string;
 }
 
 export interface TextSection {
+    id: string;
     type: 'text';
     content: string;
 }
 
 export interface HeadingSection {
+    id: string;
     type: 'heading';
     content: string;
     level: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export interface LinkSection {
+    id: string;
     type: 'link';
     content: string;
     url: string;
 }
 
 export interface DividerSection {
+    id: string;
     type: 'divider';
 }
 
