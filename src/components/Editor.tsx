@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
@@ -196,6 +196,17 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     const [tableModalOpen, setTableModalOpen] = useState(false);
     const isDark = useDarkMode();
     const scrollbarStyle = getScrollbarStyle(isDark);
+
+    // Fix: Cursor jumping issue logic
+    const cursorRef = useRef<number | null>(null);
+
+    useLayoutEffect(() => {
+        if (cursorRef.current !== null && textareaRef.current) {
+            textareaRef.current.setSelectionRange(cursorRef.current, cursorRef.current);
+            // We don't reset cursorRef here because purely content changes might trigger unrelated re-renders
+            // But usually safely reset it if we want, but keeping it is safer for rapid typing
+        }
+    });
 
     const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code' | 'link') => {
         const textarea = textareaRef.current;
@@ -444,7 +455,10 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                             <textarea
                                 ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
+                                onChange={(e) => {
+                                    cursorRef.current = e.target.selectionStart;
+                                    onChange({ ...section, content: e.target.value } as any);
+                                }}
                                 className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none' : ''}`}
                                 rows={section.type === 'heading' ? 3 : undefined}
                                 placeholder="Enter your content here..."
@@ -519,8 +533,12 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Quote Text</label>
                             <textarea
+                                ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                onChange={(e) => {
+                                    cursorRef.current = e.target.selectionStart;
+                                    onChange({ ...section, content: e.target.value });
+                                }}
                                 className={`${inputClass} flex-1 resize-none`}
                                 placeholder="Enter the quote..."
                             />
@@ -556,8 +574,12 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Alert Content</label>
                             <textarea
+                                ref={textareaRef}
                                 value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value })}
+                                onChange={(e) => {
+                                    cursorRef.current = e.target.selectionStart;
+                                    onChange({ ...section, content: e.target.value });
+                                }}
                                 className={`${inputClass} flex-1 resize-none`}
                                 placeholder="Alert message..."
                             />
