@@ -12,9 +12,9 @@ const CodeBlock = ({ code, language }: { code: string; language: string }) => (
 
 // Simple markdown parser for inline styles
 const parseMarkdown = (text: string) => {
-    // Split by patterns: code, bold, italic, strikethrough
-    // Order matters: code first to prevent parsing inside code blocks
-    const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|_[^_]+_|~[^~]+~)/g);
+    // Split by patterns: code, link, bold, italic, strikethrough
+    // Order matters: code first, then link to prevent bold/italic inside link url being parsed incorrectly
+    const parts = text.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|_[^_]+_|~[^~]+~)/g);
 
     return parts.map((part, index) => {
         // Code: `text`
@@ -24,6 +24,23 @@ const parseMarkdown = (text: string) => {
                     {part.slice(1, -1)}
                 </code>
             );
+        }
+        // Link: [text](url)
+        if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+            const matches = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            if (matches) {
+                return (
+                    <a
+                        key={index}
+                        href={matches[2]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    >
+                        {parseMarkdown(matches[1])}
+                    </a>
+                );
+            }
         }
         // Bold: **text**
         if (part.startsWith('**') && part.endsWith('**')) {

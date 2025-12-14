@@ -192,8 +192,9 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     }
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [linkPopover, setLinkPopover] = useState<{ isOpen: boolean; text: string; url: string; start: number; end: number } | null>(null);
 
-    const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code') => {
+    const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code' | 'link') => {
         const textarea = textareaRef.current;
         if (!textarea || !onChange) return;
 
@@ -201,6 +202,17 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
         const end = textarea.selectionEnd;
         const text = textarea.value;
         const selectedText = text.substring(start, end);
+
+        if (format === 'link') {
+            setLinkPopover({
+                isOpen: true,
+                text: selectedText,
+                url: '',
+                start,
+                end
+            });
+            return;
+        }
 
         let wrapper = '';
         switch (format) {
@@ -220,6 +232,28 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
             if (textareaRef.current) {
                 textareaRef.current.focus();
                 textareaRef.current.setSelectionRange(start + wrapper.length, end + wrapper.length);
+            }
+        });
+    };
+
+    const insertLink = () => {
+        if (!linkPopover || !textareaRef.current) return;
+
+        const { text, url, start, end } = linkPopover;
+        const currentContent = section.content || ''; // Handle potential null content
+
+        const linkMarkdown = `[${text || 'link'}](${url || 'https://'})`;
+        const newText = currentContent.substring(0, start) + linkMarkdown + currentContent.substring(end);
+
+        onChange({ ...section, content: newText } as any);
+        setLinkPopover(null);
+
+        requestAnimationFrame(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                // Cursor after the inserted link
+                const newCursorPos = start + linkMarkdown.length;
+                textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
             }
         });
     };
@@ -349,6 +383,62 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                                         >
                                             <Code className="w-4 h-4" />
                                         </button>
+                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => applyFormat('link')}
+                                                className={`p-1.5 rounded-md transition-colors ${linkPopover?.isOpen
+                                                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                                                    : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
+                                                title="Link"
+                                            >
+                                                <LinkIcon className="w-4 h-4" />
+                                            </button>
+
+                                            {/* Modern Popover */}
+                                            {linkPopover?.isOpen && (
+                                                <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Text</label>
+                                                            <input
+                                                                type="text"
+                                                                value={linkPopover.text}
+                                                                onChange={(e) => setLinkPopover({ ...linkPopover, text: e.target.value })}
+                                                                className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                                                                placeholder="Link text"
+                                                                autoFocus
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">URL</label>
+                                                            <input
+                                                                type="text"
+                                                                value={linkPopover.url}
+                                                                onChange={(e) => setLinkPopover({ ...linkPopover, url: e.target.value })}
+                                                                onKeyDown={(e) => e.key === 'Enter' && insertLink()}
+                                                                className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                                                                placeholder="https://example.com"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center justify-end gap-2 pt-1">
+                                                            <button
+                                                                onClick={() => setLinkPopover(null)}
+                                                                className="px-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={insertLink}
+                                                                className="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm shadow-indigo-200 dark:shadow-none"
+                                                            >
+                                                                Add Link
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
