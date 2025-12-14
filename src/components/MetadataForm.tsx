@@ -4,6 +4,7 @@ import {
     User, FileText, Link as LinkIcon, Clock, Hash,
     Layout, Search, X, Plus
 } from 'lucide-react';
+import { DebouncedInput, DebouncedTextarea } from './DebouncedControls';
 import type { BlogPost } from '../types/blog';
 
 interface MetadataFormProps {
@@ -28,6 +29,27 @@ const CATEGORIES = [
     'Veri Tabanı',
     'DevOps'
 ];
+
+// Generic Input Helper
+const InputGroup = ({
+    label,
+    icon: Icon,
+    children,
+    className = ""
+}: {
+    label: string,
+    icon?: any,
+    children: React.ReactNode,
+    className?: string
+}) => (
+    <div className={`space-y-2 ${className}`}>
+        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            {Icon && <Icon className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />}
+            {label}
+        </label>
+        {children}
+    </div>
+);
 
 export default function MetadataForm({
     post,
@@ -71,27 +93,6 @@ export default function MetadataForm({
         setter(items.join(', '));
     };
 
-    // Generic Input Helper
-    const InputGroup = ({
-        label,
-        icon: Icon,
-        children,
-        className = ""
-    }: {
-        label: string,
-        icon?: any,
-        children: React.ReactNode,
-        className?: string
-    }) => (
-        <div className={`space-y-2 ${className}`}>
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                {Icon && <Icon className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />}
-                {label}
-            </label>
-            {children}
-        </div>
-    );
-
     const inputClass = "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 shadow-sm";
 
     return (
@@ -121,34 +122,34 @@ export default function MetadataForm({
 
                         <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
                             <InputGroup label="Title" icon={Type} className="col-span-1 sm:col-span-4">
-                                <input
+                                <DebouncedInput
                                     type="text"
                                     value={post.title}
-                                    onChange={(e) => setPost({ ...post, title: e.target.value, seo: { ...post.seo!, title: e.target.value } })}
+                                    onChange={(val) => setPost({ ...post, title: val, seo: { ...post.seo!, title: val } })}
                                     className={inputClass}
                                     placeholder="Enter an engaging title..."
                                 />
                             </InputGroup>
 
                             <InputGroup label="Slug" icon={LinkIcon} className="col-span-1 sm:col-span-3">
-                                <input
+                                <DebouncedInput
                                     type="text"
                                     value={post.slug}
-                                    onChange={(e) => setPost({ ...post, slug: e.target.value })}
+                                    onChange={(val) => setPost({ ...post, slug: val })}
                                     className={`${inputClass} font-mono text-sm`}
                                     placeholder="post-url-slug"
                                 />
                             </InputGroup>
 
                             <InputGroup label="ID" icon={Hash} className="col-span-1 sm:col-span-1">
-                                <input
+                                <DebouncedInput
                                     type="text"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     value={post.id}
-                                    onChange={(e) => {
-                                        const val = e.target.value.replace(/\D/g, '');
-                                        setPost({ ...post, id: Number(val) });
+                                    onChange={(val) => {
+                                        const cleanVal = val.replace(/\D/g, '');
+                                        setPost({ ...post, id: Number(cleanVal) });
                                     }}
                                     className={`${inputClass} font-mono text-sm`}
                                 />
@@ -156,9 +157,9 @@ export default function MetadataForm({
                         </div>
 
                         <InputGroup label="Excerpt" icon={FileText}>
-                            <textarea
+                            <DebouncedTextarea
                                 value={post.excerpt}
-                                onChange={(e) => setPost({ ...post, excerpt: e.target.value, seo: { ...post.seo!, description: e.target.value } })}
+                                onChange={(val) => setPost({ ...post, excerpt: val, seo: { ...post.seo!, description: val } })}
                                 rows={6}
                                 className={`${inputClass} resize-none`}
                                 placeholder="A compelling summary of your post..."
@@ -174,29 +175,29 @@ export default function MetadataForm({
 
                         <div className="space-y-5">
                             <InputGroup label="SEO Title">
-                                <input
+                                <DebouncedInput
                                     type="text"
                                     value={post.seo?.title || ''}
-                                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, title: e.target.value } })}
+                                    onChange={(val) => setPost({ ...post, seo: { ...post.seo!, title: val } })}
                                     className={inputClass}
                                     placeholder="Optimized title for search engines"
                                 />
                             </InputGroup>
 
                             <InputGroup label="Author" icon={User}>
-                                <input
+                                <DebouncedInput
                                     type="text"
                                     value={post.seo?.author || ''}
-                                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, author: e.target.value } })}
+                                    onChange={(val) => setPost({ ...post, seo: { ...post.seo!, author: val } })}
                                     className={inputClass}
                                     placeholder="Author name"
                                 />
                             </InputGroup>
 
                             <InputGroup label="SEO Description">
-                                <textarea
+                                <DebouncedTextarea
                                     value={post.seo?.description || ''}
-                                    onChange={(e) => setPost({ ...post, seo: { ...post.seo!, description: e.target.value } })}
+                                    onChange={(val) => setPost({ ...post, seo: { ...post.seo!, description: val } })}
                                     rows={5}
                                     className={`${inputClass} resize-none`}
                                     placeholder="Meta description for search results..."
@@ -271,11 +272,11 @@ export default function MetadataForm({
                             )}
                         </div>
 
-                        <input
+                        <DebouncedInput
                             type="text"
                             value={post.imageUrl}
-                            onChange={(e) => {
-                                setPost({ ...post, imageUrl: e.target.value, seo: { ...post.seo!, image: e.target.value } });
+                            onChange={(val) => {
+                                setPost({ ...post, imageUrl: val, seo: { ...post.seo!, image: val } });
                                 setImageError(false);
                             }}
                             className={inputClass}
@@ -306,10 +307,10 @@ export default function MetadataForm({
 
                                 {customCategory ? (
                                     <div className="flex gap-2">
-                                        <input
+                                        <DebouncedInput
                                             type="text"
                                             value={post.category}
-                                            onChange={(e) => setPost({ ...post, category: e.target.value, seo: { ...post.seo!, section: e.target.value } })}
+                                            onChange={(val) => setPost({ ...post, category: val, seo: { ...post.seo!, section: val } })}
                                             className={inputClass}
                                             placeholder="Custom category..."
                                             autoFocus
@@ -403,13 +404,15 @@ export default function MetadataForm({
                         {includeReadTime && (
                             <div className="pl-3 border-l-2 border-indigo-200 dark:border-indigo-800 ml-2">
                                 <InputGroup label="Minutes">
-                                    <input
-                                        type="number"
-                                        value={post.readTime}
-                                        onChange={(e) => setPost({ ...post, readTime: Number(e.target.value) })}
-                                        className={inputClass}
-                                        placeholder="5"
-                                    />
+                                    <InputGroup label="Minutes">
+                                        <DebouncedInput
+                                            type="number"
+                                            value={post.readTime}
+                                            onChange={(val) => setPost({ ...post, readTime: Number(val) })}
+                                            className={inputClass}
+                                            placeholder="5"
+                                        />
+                                    </InputGroup>
                                 </InputGroup>
                             </div>
                         )}
