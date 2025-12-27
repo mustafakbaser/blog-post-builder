@@ -68,6 +68,14 @@ export interface DividerSection {
     type: 'divider';
 }
 
+export interface YouTubeSection {
+    id: string;
+    type: 'youtube';
+    videoId: string;
+    title: string;
+    posterQuality?: 'mqdefault' | 'hqdefault' | 'sddefault' | 'maxresdefault';
+}
+
 export type ContentSection =
     | TextSection
     | CodeSection
@@ -78,7 +86,8 @@ export type ContentSection =
     | QuoteSection
     | ListSection
     | TableSection
-    | AlertSection;
+    | AlertSection
+    | YouTubeSection;
 
 export interface BlogPost {
     id: number;

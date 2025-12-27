@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
-import { Clock, Calendar, AlertCircle, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, Calendar, AlertCircle, AlertTriangle, CheckCircle, XCircle, Youtube } from 'lucide-react';
 import type { ContentSection, BlogPost } from '../types/blog';
 
 // Mock components since we don't have the full project structure
@@ -191,6 +191,14 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                             <Icon className={`h-5 w-5 ${alertStyles.text} mr-3 flex-shrink-0 mt-0.5`} />
                             <div className={`${alertStyles.text} break-words flex-1`}>{parseMarkdown(section.content)}</div>
                         </div>
+                    </div>
+                );
+            case 'youtube':
+                return (
+                    <div className="my-8 aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                        <Youtube className="w-12 h-12 mb-3 opacity-20" />
+                        <p className="font-medium">YouTube Video Placeholder</p>
+                        <p className="text-sm opacity-60">{section.title || section.videoId || 'No data provided'}</p>
                     </div>
                 );
             default:

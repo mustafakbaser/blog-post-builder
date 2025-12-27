@@ -3,7 +3,7 @@ import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
     Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
-    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2, GripVertical
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2, GripVertical, Youtube
 } from 'lucide-react';
 import {
     DndContext,
@@ -105,6 +105,7 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
             case 'link': return LinkIcon;
             case 'divider': return Minus;
             case 'heading': return Heading1;
+            case 'youtube': return Youtube;
             default: return Type;
         }
     };
@@ -121,6 +122,8 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
                 return 'Horizontal divider';
             case 'image':
                 return section.alt || section.url || 'No image';
+            case 'youtube':
+                return section.title || section.videoId || 'No video';
             default:
                 if ('content' in section) {
                     return section.content || 'Empty content...';
@@ -867,6 +870,46 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     </div>
                 )}
 
+                {/* YouTube */}
+                {section.type === 'youtube' && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className={labelClass}>Video ID</label>
+                            <input
+                                type="text"
+                                value={section.videoId}
+                                onChange={(e) => onChange({ ...section, videoId: e.target.value })}
+                                className={inputClass}
+                                placeholder="e.g. iDqrgjyv09A"
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Video Title</label>
+                            <input
+                                type="text"
+                                value={section.title}
+                                onChange={(e) => onChange({ ...section, title: e.target.value })}
+                                className={inputClass}
+                                placeholder="Enter video title..."
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Poster Quality (optional)</label>
+                            <select
+                                value={section.posterQuality || ''}
+                                onChange={(e) => onChange({ ...section, posterQuality: (e.target.value || undefined) as any })}
+                                className={inputClass}
+                            >
+                                <option value="">Default</option>
+                                <option value="mqdefault">Medium</option>
+                                <option value="hqdefault">High</option>
+                                <option value="sddefault">Standard</option>
+                                <option value="maxresdefault">Max Resolution</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );
@@ -901,6 +944,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             case 'alert': return { id, type: 'alert', content: 'Important information!', variant: 'info' };
             case 'link': return { id, type: 'link', content: 'Click here', url: 'https://mustafabaser.net' };
             case 'divider': return { id, type: 'divider' };
+            case 'youtube': return { id, type: 'youtube', videoId: '', title: '', posterQuality: 'maxresdefault' };
             default: return { id, type: 'text', content: '' };
         }
     };
@@ -1015,6 +1059,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                             <SidebarItem icon={Table} label="Table" onClick={() => handleAddSection('table')} />
                             <SidebarItem icon={AlertCircle} label="Alert" onClick={() => handleAddSection('alert')} />
                             <SidebarItem icon={LinkIcon} label="Link" onClick={() => handleAddSection('link')} />
+                            <SidebarItem icon={Youtube} label="YouTube" onClick={() => handleAddSection('youtube')} />
                             <SidebarItem icon={Minus} label="Divider" onClick={() => handleAddSection('divider')} />
                         </div>
                     </div>
@@ -1062,6 +1107,7 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
                     <SidebarItem icon={Table} label="Table" onClick={() => addSection('table')} />
                     <SidebarItem icon={AlertCircle} label="Alert" onClick={() => addSection('alert')} />
                     <SidebarItem icon={LinkIcon} label="Link" onClick={() => addSection('link')} />
+                    <SidebarItem icon={Youtube} label="YouTube" onClick={() => addSection('youtube')} />
                     <SidebarItem icon={Minus} label="Divider" onClick={() => addSection('divider')} />
                 </div>
             </div>
