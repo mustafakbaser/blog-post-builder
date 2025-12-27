@@ -1,7 +1,8 @@
 import { format } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
-import { Clock, Calendar, AlertCircle, AlertTriangle, CheckCircle, XCircle, Youtube } from 'lucide-react';
+import { Clock, Calendar, AlertCircle, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import type { ContentSection, BlogPost } from '../types/blog';
+import YouTubeEmbed from './YouTubeEmbed';
 
 // Mock components since we don't have the full project structure
 const CodeBlock = ({ code, language }: { code: string; language: string }) => (
@@ -195,10 +196,12 @@ export default function PreviewPost({ post, language = 'tr' }: PreviewPostProps)
                 );
             case 'youtube':
                 return (
-                    <div className="my-8 aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
-                        <Youtube className="w-12 h-12 mb-3 opacity-20" />
-                        <p className="font-medium">YouTube Video Placeholder</p>
-                        <p className="text-sm opacity-60">{section.title || section.videoId || 'No data provided'}</p>
+                    <div className="my-8">
+                        <YouTubeEmbed
+                            videoId={section.videoId}
+                            title={section.title}
+                            posterQuality={section.posterQuality}
+                        />
                     </div>
                 );
             default:
