@@ -35,13 +35,14 @@ const sanitizeJsonString = (text: string): string => {
   // This regex matches the entire getter block including its body
   sanitized = sanitized.replace(/,?\s*get\s+\w+\s*\([^)]*\)\s*\{[^}]*\}/g, '');
 
-  // Convert single quotes to double quotes for JSON compatibility
-  // But preserve single quotes inside double-quoted strings
-  sanitized = sanitized.replace(/(\w+):\s*'([^']*)'/g, '$1: "$2"');
+  // Add double quotes to unquoted keys for JSON compatibility
+  sanitized = sanitized.replace(/^(\s*)(\w+)\s*:/gm, '$1"$2":');
 
-  // Fix remaining single quotes in array values
-  sanitized = sanitized.replace(/\[\s*'([^']*)'(?:\s*,\s*'([^']*)')*\s*\]/g, (match) => {
-    return match.replace(/'/g, '"');
+  // Convert single-quoted strings to double-quoted for JSON compatibility
+  // Handles escaped single quotes (\') inside strings
+  sanitized = sanitized.replace(/'((?:[^'\\]|\\.)*)'/g, (_, content) => {
+    const unescaped = content.replace(/\\'/g, "'");
+    return `"${unescaped}"`;
   });
 
   // Remove trailing commas before closing braces/brackets (invalid JSON)

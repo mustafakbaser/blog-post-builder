@@ -232,6 +232,13 @@ function App() {
     fileInputRef.current?.click();
   };
 
+  const toJsObjectLiteral = (json: string): string => {
+    return json.replace(/^(\s*)"([^"]+)":\s*/gm, '$1$2: ').replace(/"([^"]*)"/g, (_, content) => {
+      const escaped = content.replace(/'/g, "\\'");
+      return `'${escaped}'`;
+    });
+  };
+
   const handleExport = () => {
     // Convert keywords and tags from input strings to arrays
     const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
@@ -260,8 +267,8 @@ function App() {
       delete (exportPost as any).readTime;
     }
 
-    // Convert to JSON string
-    let exportData = JSON.stringify(exportPost, null, 2);
+    // Convert to JSON string then to JS object literal format
+    let exportData = toJsObjectLiteral(JSON.stringify(exportPost, null, 2));
 
     // Add readTime getter if not included (User Requirement)
     if (!includeReadTime) {
@@ -284,7 +291,7 @@ function App() {
 
     console.log('📤 Export data:', exportData.substring(0, 200));
 
-    const blob = new Blob([exportData], { type: 'application/json' });
+    const blob = new Blob([exportData], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
