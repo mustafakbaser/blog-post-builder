@@ -27,13 +27,3 @@ export function useDarkMode(): boolean {
 
     return isDark;
 }
-
-/**
- * Returns scrollbar color styles based on current theme
- */
-export function getScrollbarStyle(isDark: boolean): React.CSSProperties {
-    return {
-        scrollbarColor: isDark ? '#475569 #1e293b' : '#cbd5e1 #f1f5f9',
-        scrollbarWidth: 'thin'
-    } as React.CSSProperties;
-}
