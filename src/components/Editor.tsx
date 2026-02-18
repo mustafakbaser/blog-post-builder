@@ -3,7 +3,7 @@ import type { ContentSection } from '../types/blog';
 import {
     Type, Image as ImageIcon, X, Plus, Trash2,
     Bold, Italic, Strikethrough, Code, Settings, PanelLeftOpen, PanelRightOpen, Copy,
-    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2, GripVertical, Youtube
+    Quote, List, Table, AlertCircle, Heading1, Minus, ChevronUp, ChevronDown, XCircle, Link as LinkIcon, Maximize2, GripVertical, Youtube, FileText
 } from 'lucide-react';
 import {
     DndContext,
@@ -22,23 +22,57 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import ConfirmDialog from './ConfirmDialog';
-import { useDarkMode, getScrollbarStyle } from '../hooks/useDarkMode';
 import TableDesigner from './TableDesigner';
 
-// Sidebar Item Component - Click to add
+// Sidebar categories
+const SIDEBAR_CATEGORIES = [
+    {
+        label: 'Content',
+        items: [
+            { icon: Type, label: 'Text', type: 'text' },
+            { icon: Heading1, label: 'Heading', type: 'heading' },
+            { icon: Quote, label: 'Quote', type: 'quote' },
+        ],
+    },
+    {
+        label: 'Media',
+        items: [
+            { icon: ImageIcon, label: 'Image', type: 'image' },
+            { icon: Youtube, label: 'YouTube', type: 'youtube' },
+        ],
+    },
+    {
+        label: 'Data',
+        items: [
+            { icon: Code, label: 'Code Block', type: 'code' },
+            { icon: List, label: 'List', type: 'list' },
+            { icon: Table, label: 'Table', type: 'table' },
+        ],
+    },
+    {
+        label: 'Inline',
+        items: [
+            { icon: LinkIcon, label: 'Link', type: 'link' },
+            { icon: AlertCircle, label: 'Alert', type: 'alert' },
+            { icon: Minus, label: 'Divider', type: 'divider' },
+        ],
+    },
+];
+
+// Sidebar Item Component
 function SidebarItem({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="group flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all w-full text-left"
+            className="group flex items-center gap-3 p-2.5 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg hover:border-accent-400 dark:hover:border-accent-500 hover:bg-accent-50 dark:hover:bg-accent-950/30 transition-all w-full text-left active:scale-[0.97]"
         >
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-md group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800/50 transition-colors">
-                <Icon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <div className="p-1.5 bg-accent-50 dark:bg-accent-950/50 rounded-md group-hover:bg-accent-100 dark:group-hover:bg-accent-900/50 transition-colors">
+                <Icon className="w-3.5 h-3.5 text-accent-600 dark:text-accent-400" />
             </div>
-            <span className="font-medium text-slate-700 dark:text-slate-200 flex-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-sm">
+            <span className="font-medium text-surface-600 dark:text-surface-300 flex-1 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors text-sm">
                 {label}
             </span>
-            <Plus className="w-4 h-4 text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-all" />
+            <Plus className="w-3.5 h-3.5 text-surface-300 dark:text-surface-600 opacity-0 group-hover:opacity-100 group-hover:text-accent-500 dark:group-hover:text-accent-400 transition-all" />
         </button>
     );
 }
@@ -63,13 +97,12 @@ function SortableCanvasItem(props: any) {
     };
 
     return (
-        <div ref={setNodeRef} style={style} className={isDragging ? 'z-50' : ''}>
+        <div ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''} ${props.isNew ? 'animate-section-add' : ''}`}>
             <div className="flex items-start gap-2">
-                {/* Drag Handle */}
                 <div
                     {...attributes}
                     {...listeners}
-                    className="mt-4 p-1.5 text-slate-400 hover:text-indigo-500 cursor-grab active:cursor-grabbing hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                    className="mt-4 p-1.5 text-surface-300 dark:text-surface-600 hover:text-accent-500 cursor-grab active:cursor-grabbing hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
                 >
                     <GripVertical className="w-4 h-4" />
                 </div>
@@ -136,21 +169,19 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
 
     return (
         <div
-            className={`relative group flex items-start gap-3 p-4 bg-white dark:bg-slate-800 border rounded-lg transition-all cursor-pointer ${isSelected
-                ? 'border-indigo-500 dark:border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900/50 shadow-md'
-                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm'
+            className={`relative group flex items-start gap-3 p-4 bg-white dark:bg-surface-800 border rounded-xl transition-all duration-200 cursor-pointer ${isSelected
+                ? 'border-accent-400 dark:border-accent-500 ring-2 ring-accent-100/50 dark:ring-accent-900/30 shadow-glow bg-accent-50/30 dark:bg-accent-950/20'
+                : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600 hover:shadow-elevated'
                 }`}
             onClick={onSelect}
         >
-            {/* Move Controls - Removed in favor of Drag & Drop (Optional: Keep for accessibility) */}
             <div className="flex flex-col gap-1">
-                {/* Kept available for accessibility primarily */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                     disabled={isFirst}
                     className={`p-1 rounded transition-colors ${isFirst
                         ? 'opacity-20 cursor-not-allowed'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        : 'hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 hover:text-surface-700 dark:hover:text-surface-200'
                         }`}
                     title="Move up"
                 >
@@ -161,7 +192,7 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
                     disabled={isLast}
                     className={`p-1 rounded transition-colors ${isLast
                         ? 'opacity-20 cursor-not-allowed'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        : 'hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 hover:text-surface-700 dark:hover:text-surface-200'
                         }`}
                     title="Move down"
                 >
@@ -169,38 +200,36 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
                 </button>
             </div>
 
-            {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded">
-                        <Icon className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                    <div className="p-1.5 bg-surface-100 dark:bg-surface-700 rounded">
+                        <Icon className="w-3.5 h-3.5 text-surface-500 dark:text-surface-400" />
                     </div>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider">
                         {section.type}
                     </span>
                     {section.type === 'list' && (
-                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                        <span className="text-xs text-surface-400 dark:text-surface-500">
                             ({section.ordered ? 'ordered' : 'unordered'})
                         </span>
                     )}
                 </div>
-                <div className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                    {getPreview() || <span className="text-slate-400 dark:text-slate-500 italic">Empty...</span>}
+                <div className="text-sm text-surface-600 dark:text-surface-300 line-clamp-2 leading-relaxed">
+                    {getPreview() || <span className="text-surface-400 dark:text-surface-500 italic">Empty...</span>}
                 </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-row gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                     onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-                    className="p-1.5 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded transition-all"
+                    className="p-1.5 text-surface-400 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-950/30 rounded transition-all active:scale-90"
                     title="Duplicate"
                 >
                     <Copy className="w-5 h-5" />
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                    className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all"
+                    className="p-1.5 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-all active:scale-90"
                     title="Delete"
                 >
                     <XCircle className="w-5 h-5" />
@@ -210,24 +239,17 @@ function CanvasItem({ section, onDelete, onDuplicate, onSelect, onMoveUp, onMove
     );
 }
 
-// Properties Panel Component
+// Image Preview
 const ImagePreview = ({ url }: { url: string }) => {
     const [error, setError] = useState(false);
     useEffect(() => { setError(false); }, [url]);
-
     if (!url) return null;
-
     return (
-        <div className="mt-3 relative aspect-video bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+        <div className="mt-3 relative aspect-video bg-surface-100 dark:bg-surface-800 rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700 flex items-center justify-center">
             {!error ? (
-                <img
-                    src={url}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    onError={() => setError(true)}
-                />
+                <img src={url} alt="Preview" className="w-full h-full object-cover" onError={() => setError(true)} />
             ) : (
-                <div className="flex flex-col items-center text-slate-400">
+                <div className="flex flex-col items-center text-surface-400">
                     <ImageIcon className="w-8 h-8 mb-1 opacity-50" />
                     <span className="text-[10px] uppercase tracking-wider font-medium">Invalid Image</span>
                 </div>
@@ -236,7 +258,7 @@ const ImagePreview = ({ url }: { url: string }) => {
     );
 };
 
-// Optimized Textarea Component
+// Auto-resizing Textarea
 const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ value, onChange, ...props }, ref) => {
     const defaultRef = useRef<HTMLTextAreaElement>(null);
     const resolvedRef = (ref as React.MutableRefObject<HTMLTextAreaElement>) || defaultRef;
@@ -244,7 +266,6 @@ const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLA
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastEmittedValue = useRef(value);
 
-    // Sync from props if significantly different (external change)
     useEffect(() => {
         if (value !== lastEmittedValue.current && value !== localValue) {
             setLocalValue(value);
@@ -260,20 +281,15 @@ const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLA
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const val = e.target.value;
         setLocalValue(val);
-
-        // Auto-resize
         e.target.style.height = 'auto';
         e.target.style.height = e.target.scrollHeight + 'px';
-
         if (timerRef.current) clearTimeout(timerRef.current);
-
         timerRef.current = setTimeout(() => {
             lastEmittedValue.current = val;
             if (onChange) onChange(e);
         }, 300);
     };
 
-    // Initial resize
     useLayoutEffect(() => {
         if (resolvedRef.current) {
             resolvedRef.current.style.height = 'auto';
@@ -284,15 +300,16 @@ const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLA
     return <textarea ref={resolvedRef} value={localValue} onChange={handleChange} {...props} />;
 });
 
+// Properties Panel
 function PropertiesPanel({ section, onChange }: { section: ContentSection | null; onChange: (updated: ContentSection) => void }) {
     if (!section) {
         return (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm mb-4 border border-slate-100 dark:border-slate-700">
-                    <Settings className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-surface-50/50 dark:bg-surface-900/50">
+                <div className="p-4 bg-white dark:bg-surface-800 rounded-2xl shadow-sm mb-4 border border-surface-200 dark:border-surface-700">
+                    <Settings className="w-8 h-8 text-accent-400 dark:text-accent-500" />
                 </div>
-                <h3 className="text-slate-900 dark:text-white font-semibold mb-1">No Selection</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[200px]">Select an element from the canvas to customize its styling and content</p>
+                <h3 className="font-display font-bold text-surface-900 dark:text-white mb-1">No Selection</h3>
+                <p className="text-surface-400 dark:text-surface-500 text-sm max-w-[200px]">Select an element from the canvas to customize its styling and content</p>
             </div>
         );
     }
@@ -300,29 +317,17 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [linkPopover, setLinkPopover] = useState<{ isOpen: boolean; text: string; url: string; start: number; end: number } | null>(null);
     const [tableModalOpen, setTableModalOpen] = useState(false);
-    const isDark = useDarkMode();
-    const scrollbarStyle = getScrollbarStyle(isDark);
-
-    // Fix: Cursor jumping issue logic
-    // Removed: Replaced by AutoResizingTextarea which handles local state natively
 
     const applyFormat = (format: 'bold' | 'italic' | 'strike' | 'code' | 'link') => {
         const textarea = textareaRef.current;
         if (!textarea || !onChange) return;
-
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
         const selectedText = text.substring(start, end);
 
         if (format === 'link') {
-            setLinkPopover({
-                isOpen: true,
-                text: selectedText,
-                url: '',
-                start,
-                end
-            });
+            setLinkPopover({ isOpen: true, text: selectedText, url: '', start, end });
             return;
         }
 
@@ -335,11 +340,7 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
         }
 
         const newText = text.substring(0, start) + wrapper + selectedText + wrapper + text.substring(end);
-
-        // Update content
         onChange({ ...section, content: newText } as any);
-
-        // Restore focus and selection
         requestAnimationFrame(() => {
             if (textareaRef.current) {
                 textareaRef.current.focus();
@@ -350,34 +351,24 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const insertLink = () => {
         if (!linkPopover || !textareaRef.current) return;
-
         const { text, url, start, end } = linkPopover;
-        // Safely access content - only text/code/heading/quote/alert sections have content
         const currentContent = ('content' in section && typeof section.content === 'string') ? section.content : '';
-
         const linkMarkdown = `[${text || 'link'}](${url || 'https://'})`;
         const newText = currentContent.substring(0, start) + linkMarkdown + currentContent.substring(end);
-
         onChange({ ...section, content: newText } as any);
         setLinkPopover(null);
-
         requestAnimationFrame(() => {
             if (textareaRef.current) {
                 textareaRef.current.focus();
-                // Cursor after the inserted link
                 const newCursorPos = start + linkMarkdown.length;
                 textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
             }
         });
     };
 
-    const inputClass = "w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-slate-900 dark:text-white text-sm shadow-sm";
-    const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 ml-0.5";
+    const inputClass = "w-full px-3.5 py-2.5 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-accent-500/20 dark:focus:ring-accent-400/20 focus:border-accent-500 dark:focus:border-accent-400 transition-all text-surface-900 dark:text-white text-sm shadow-sm";
+    const labelClass = "block text-sm font-medium text-surface-600 dark:text-surface-300 mb-1.5 ml-0.5";
 
-
-
-
-    // List helpers
     const updateListItem = (index: number, value: string) => {
         if (section.type !== 'list') return;
         const newItems = [...section.items];
@@ -392,49 +383,34 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
 
     const removeListItem = (index: number) => {
         if (section.type !== 'list') return;
-        const newItems = section.items.filter((_, i) => i !== index);
-        onChange({ ...section, items: newItems });
+        onChange({ ...section, items: section.items.filter((_, i) => i !== index) });
     };
 
-    // Table helpers
-
-
     return (
-        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
-            {/* Header */}
-            <div className="flex-none px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="flex flex-col h-full bg-surface-50 dark:bg-surface-900/50">
+            {/* Header with accent border */}
+            <div className="flex-none px-6 py-4 border-b border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 border-l-2 border-l-accent-400 dark:border-l-accent-500">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
-                        <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="p-2 bg-accent-50 dark:bg-accent-950/30 rounded-lg">
+                        <Settings className="w-5 h-5 text-accent-600 dark:text-accent-400" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-slate-900 dark:text-white capitalize">
-                            {section.type} Properties
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Configure visual appearance</p>
+                        <h3 className="font-display font-bold text-surface-900 dark:text-white capitalize">{section.type} Properties</h3>
+                        <p className="text-xs text-surface-400 dark:text-surface-500">Configure visual appearance</p>
                     </div>
                 </div>
             </div>
 
             {/* Scrollable Content */}
-            <div
-                className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
-                style={scrollbarStyle}
-            >
-
-                {/* Text, Code, Heading content - Expanded for Text/Code */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                {/* Text, Code, Heading content */}
                 {(section.type === 'text' || section.type === 'code' || section.type === 'heading') && (
                     <div className={section.type !== 'heading' ? "flex flex-col h-full gap-2" : "space-y-4"}>
                         <div className={section.type !== 'heading' ? "flex-1 flex flex-col min-h-[300px]" : ""}>
                             <div className="flex items-center justify-between mb-2">
-                                {/* Code Language Selector - Moved to Top */}
                                 {section.type === 'code' && (
                                     <div className="flex-1">
-                                        <select
-                                            value={section.language}
-                                            onChange={(e) => onChange({ ...section, language: e.target.value })}
-                                            className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                                        >
+                                        <select value={section.language} onChange={(e) => onChange({ ...section, language: e.target.value })} className="w-full px-3 py-1.5 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-sm text-surface-600 dark:text-surface-300 focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500">
                                             <optgroup label="Web">
                                                 <option value="javascript">JavaScript</option>
                                                 <option value="typescript">TypeScript</option>
@@ -459,89 +435,30 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                                     </div>
                                 )}
                                 {section.type === 'text' && <label className={labelClass}>Content</label>}
-                                {/* Text Formatting Toolbar */}
                                 {section.type === 'text' && (
-                                    <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 shadow-sm">
-                                        <button
-                                            onClick={() => applyFormat('bold')}
-                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                                            title="Bold"
-                                        >
-                                            <Bold className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => applyFormat('italic')}
-                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                                            title="Italic"
-                                        >
-                                            <Italic className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => applyFormat('strike')}
-                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                                            title="Strikethrough"
-                                        >
-                                            <Strikethrough className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
-                                        <button
-                                            onClick={() => applyFormat('code')}
-                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                                            title="Inline Code"
-                                        >
-                                            <Code className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                                    <div className="flex items-center gap-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-1 shadow-sm">
+                                        <button onClick={() => applyFormat('bold')} className="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-md text-surface-500 dark:text-surface-400 transition-colors active:scale-90" title="Bold"><Bold className="w-4 h-4" /></button>
+                                        <button onClick={() => applyFormat('italic')} className="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-md text-surface-500 dark:text-surface-400 transition-colors active:scale-90" title="Italic"><Italic className="w-4 h-4" /></button>
+                                        <button onClick={() => applyFormat('strike')} className="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-md text-surface-500 dark:text-surface-400 transition-colors active:scale-90" title="Strikethrough"><Strikethrough className="w-4 h-4" /></button>
+                                        <div className="w-px h-4 bg-surface-200 dark:bg-surface-700 mx-1" />
+                                        <button onClick={() => applyFormat('code')} className="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-md text-surface-500 dark:text-surface-400 transition-colors active:scale-90" title="Inline Code"><Code className="w-4 h-4" /></button>
+                                        <div className="w-px h-4 bg-surface-200 dark:bg-surface-700 mx-1" />
                                         <div className="relative">
-                                            <button
-                                                onClick={() => applyFormat('link')}
-                                                className={`p-1.5 rounded-md transition-colors ${linkPopover?.isOpen
-                                                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
-                                                    : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400'}`}
-                                                title="Link"
-                                            >
-                                                <LinkIcon className="w-4 h-4" />
-                                            </button>
-
-                                            {/* Modern Popover */}
+                                            <button onClick={() => applyFormat('link')} className={`p-1.5 rounded-md transition-colors active:scale-90 ${linkPopover?.isOpen ? 'bg-accent-100 dark:bg-accent-900/50 text-accent-600 dark:text-accent-400' : 'hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400'}`} title="Link"><LinkIcon className="w-4 h-4" /></button>
                                             {linkPopover?.isOpen && (
-                                                <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-white dark:bg-surface-800 rounded-xl shadow-elevated-lg border border-surface-200 dark:border-surface-700 z-50 animate-scale-in">
                                                     <div className="space-y-3">
                                                         <div>
-                                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Text</label>
-                                                            <input
-                                                                type="text"
-                                                                value={linkPopover.text}
-                                                                onChange={(e) => setLinkPopover({ ...linkPopover, text: e.target.value })}
-                                                                className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
-                                                                placeholder="Link text"
-                                                                autoFocus
-                                                            />
+                                                            <label className="block text-xs font-medium text-surface-400 mb-1">Text</label>
+                                                            <input type="text" value={linkPopover.text} onChange={(e) => setLinkPopover({ ...linkPopover, text: e.target.value })} className="w-full px-2 py-1.5 text-sm bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 dark:text-white" placeholder="Link text" autoFocus />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">URL</label>
-                                                            <input
-                                                                type="text"
-                                                                value={linkPopover.url}
-                                                                onChange={(e) => setLinkPopover({ ...linkPopover, url: e.target.value })}
-                                                                onKeyDown={(e) => e.key === 'Enter' && insertLink()}
-                                                                className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
-                                                                placeholder="https://example.com"
-                                                            />
+                                                            <label className="block text-xs font-medium text-surface-400 mb-1">URL</label>
+                                                            <input type="text" value={linkPopover.url} onChange={(e) => setLinkPopover({ ...linkPopover, url: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && insertLink()} className="w-full px-2 py-1.5 text-sm bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 dark:text-white" placeholder="https://example.com" />
                                                         </div>
                                                         <div className="flex items-center justify-end gap-2 pt-1">
-                                                            <button
-                                                                onClick={() => setLinkPopover(null)}
-                                                                className="px-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                onClick={insertLink}
-                                                                className="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm shadow-indigo-200 dark:shadow-none"
-                                                            >
-                                                                Add Link
-                                                            </button>
+                                                            <button onClick={() => setLinkPopover(null)} className="px-2 py-1.5 text-xs font-medium text-surface-400 hover:text-surface-700 dark:hover:text-surface-200">Cancel</button>
+                                                            <button onClick={insertLink} className="px-3 py-1.5 text-xs font-medium bg-accent-600 hover:bg-accent-700 text-white rounded-lg transition-colors shadow-sm active:scale-95">Add Link</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -550,241 +467,113 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                                     </div>
                                 )}
                             </div>
-                            <AutoResizingTextarea
-                                ref={textareaRef}
-                                value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value } as any)}
-                                className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none overflow-hidden' : ''}`}
-                                rows={section.type === 'heading' ? 3 : undefined}
-                                placeholder="Enter your content here..."
-                            />
+                            <AutoResizingTextarea ref={textareaRef} value={section.content} onChange={(e) => onChange({ ...section, content: e.target.value } as any)} className={`${inputClass} font-mono leading-relaxed ${section.type !== 'heading' ? 'flex-1 resize-none overflow-hidden' : ''}`} rows={section.type === 'heading' ? 3 : undefined} placeholder="Enter your content here..." />
                         </div>
                     </div>
                 )}
 
-                {/* Heading Level - Standard */}
                 {section.type === 'heading' && (
                     <div>
                         <label className={labelClass}>Heading Level</label>
                         <div className="grid grid-cols-3 gap-2">
                             {[1, 2, 3, 4, 5, 6].map(l => (
-                                <button
-                                    key={l}
-                                    onClick={() => onChange({ ...section, level: l as any })}
-                                    className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${section.level === l
-                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300'
-                                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600'
-                                        }`}
-                                >
-                                    H{l}
-                                </button>
+                                <button key={l} onClick={() => onChange({ ...section, level: l as any })} className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all active:scale-95 ${section.level === l ? 'bg-accent-50 border-accent-500 text-accent-700 dark:bg-accent-950/30 dark:border-accent-400 dark:text-accent-300' : 'bg-white border-surface-200 text-surface-500 hover:border-surface-300 dark:bg-surface-800 dark:border-surface-700 dark:text-surface-400 dark:hover:border-surface-600'}`}>H{l}</button>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Image */}
                 {section.type === 'image' && (
                     <div className="space-y-4">
                         <div>
                             <label className={labelClass}>Image URL</label>
-                            <input
-                                type="text"
-                                value={section.url}
-                                onChange={(e) => onChange({ ...section, url: e.target.value })}
-                                className={inputClass}
-                                placeholder="https://example.com/image.jpg"
-                            />
+                            <input type="text" value={section.url} onChange={(e) => onChange({ ...section, url: e.target.value })} className={inputClass} placeholder="https://example.com/image.jpg" />
                             <ImagePreview url={section.url} />
                         </div>
                         <div>
                             <label className={labelClass}>Alt Text</label>
-                            <input
-                                type="text"
-                                value={section.alt}
-                                onChange={(e) => onChange({ ...section, alt: e.target.value })}
-                                className={inputClass}
-                                placeholder="Describe the image..."
-                            />
+                            <input type="text" value={section.alt} onChange={(e) => onChange({ ...section, alt: e.target.value })} className={inputClass} placeholder="Describe the image..." />
                         </div>
                         <div>
                             <label className={labelClass}>Caption (optional)</label>
-                            <input
-                                type="text"
-                                value={section.caption || ''}
-                                onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                                className={inputClass}
-                                placeholder="Image caption..."
-                            />
+                            <input type="text" value={section.caption || ''} onChange={(e) => onChange({ ...section, caption: e.target.value })} className={inputClass} placeholder="Image caption..." />
                         </div>
                     </div>
                 )}
 
-
-
-                {/* Quote */}
                 {section.type === 'quote' && (
                     <div className="flex flex-col h-full gap-4">
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Quote Text</label>
-                            <AutoResizingTextarea
-                                ref={textareaRef}
-                                value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value })}
-                                className={`${inputClass} flex-1 resize-none overflow-hidden`}
-                                placeholder="Enter the quote..."
-                            />
+                            <AutoResizingTextarea ref={textareaRef} value={section.content} onChange={(e) => onChange({ ...section, content: e.target.value })} className={`${inputClass} flex-1 resize-none overflow-hidden`} placeholder="Enter the quote..." />
                         </div>
                         <div className="space-y-4 flex-none">
                             <div>
                                 <label className={labelClass}>Author (optional)</label>
-                                <input
-                                    type="text"
-                                    value={section.author || ''}
-                                    onChange={(e) => onChange({ ...section, author: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="Who said this?"
-                                />
+                                <input type="text" value={section.author || ''} onChange={(e) => onChange({ ...section, author: e.target.value })} className={inputClass} placeholder="Who said this?" />
                             </div>
                             <div>
                                 <label className={labelClass}>Source (optional)</label>
-                                <input
-                                    type="text"
-                                    value={section.source || ''}
-                                    onChange={(e) => onChange({ ...section, source: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="Book, article, etc."
-                                />
+                                <input type="text" value={section.source || ''} onChange={(e) => onChange({ ...section, source: e.target.value })} className={inputClass} placeholder="Book, article, etc." />
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Alert */}
                 {section.type === 'alert' && (
                     <div className="flex flex-col h-full gap-4">
                         <div className="flex-1 flex flex-col min-h-[150px]">
                             <label className={labelClass}>Alert Content</label>
-                            <AutoResizingTextarea
-                                ref={textareaRef}
-                                value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value })}
-                                className={`${inputClass} flex-1 resize-none overflow-hidden`}
-                                placeholder="Alert message..."
-                            />
+                            <AutoResizingTextarea ref={textareaRef} value={section.content} onChange={(e) => onChange({ ...section, content: e.target.value })} className={`${inputClass} flex-1 resize-none overflow-hidden`} placeholder="Alert message..." />
                         </div>
                         <div className="flex-none">
                             <label className={labelClass}>Alert Type</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {(['info', 'success', 'warning', 'error'] as const).map(variant => (
-                                    <button
-                                        key={variant}
-                                        onClick={() => onChange({ ...section, variant })}
-                                        className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${section.variant === variant
-                                            ? variant === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300 ring-1 ring-blue-500/20'
-                                                : variant === 'success' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-400 dark:text-emerald-300 ring-1 ring-emerald-500/20'
-                                                    : variant === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:border-amber-400 dark:text-amber-300 ring-1 ring-amber-500/20'
-                                                        : 'bg-red-50 border-red-500 text-red-700 dark:bg-red-900/30 dark:border-red-400 dark:text-red-300 ring-1 ring-red-500/20'
-                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        {variant.charAt(0).toUpperCase() + variant.slice(1)}
-                                    </button>
+                                    <button key={variant} onClick={() => onChange({ ...section, variant })} className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm active:scale-95 ${section.variant === variant
+                                        ? variant === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300 ring-1 ring-blue-500/20'
+                                            : variant === 'success' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-400 dark:text-emerald-300 ring-1 ring-emerald-500/20'
+                                                : variant === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 dark:bg-amber-900/30 dark:border-amber-400 dark:text-amber-300 ring-1 ring-amber-500/20'
+                                                    : 'bg-red-50 border-red-500 text-red-700 dark:bg-red-900/30 dark:border-red-400 dark:text-red-300 ring-1 ring-red-500/20'
+                                        : 'bg-white dark:bg-surface-800 border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'}`}>{variant.charAt(0).toUpperCase() + variant.slice(1)}</button>
                                 ))}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Link */}
                 {section.type === 'link' && (
                     <div className="space-y-4">
-                        <div>
-                            <label className={labelClass}>Link Text</label>
-                            <input
-                                type="text"
-                                value={section.content}
-                                onChange={(e) => onChange({ ...section, content: e.target.value })}
-                                className={inputClass}
-                                placeholder="Click here"
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClass}>URL</label>
-                            <input
-                                type="text"
-                                value={section.url}
-                                onChange={(e) => onChange({ ...section, url: e.target.value })}
-                                className={inputClass}
-                                placeholder="https://example.com"
-                            />
-                        </div>
+                        <div><label className={labelClass}>Link Text</label><input type="text" value={section.content} onChange={(e) => onChange({ ...section, content: e.target.value })} className={inputClass} placeholder="Click here" /></div>
+                        <div><label className={labelClass}>URL</label><input type="text" value={section.url} onChange={(e) => onChange({ ...section, url: e.target.value })} className={inputClass} placeholder="https://example.com" /></div>
                     </div>
                 )}
 
-                {/* List */}
                 {section.type === 'list' && (
                     <div className="space-y-6">
                         <div>
                             <label className={labelClass}>List Type</label>
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => onChange({ ...section, ordered: false })}
-                                    className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${!section.ordered
-                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 ring-1 ring-indigo-500/20'
-                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                        }`}
-                                >
-                                    • Unordered
-                                </button>
-                                <button
-                                    onClick={() => onChange({ ...section, ordered: true })}
-                                    className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm ${section.ordered
-                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 ring-1 ring-indigo-500/20'
-                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                        }`}
-                                >
-                                    1. Ordered
-                                </button>
+                                <button onClick={() => onChange({ ...section, ordered: false })} className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm active:scale-[0.97] ${!section.ordered ? 'bg-accent-50 border-accent-500 text-accent-700 dark:bg-accent-950/30 dark:border-accent-400 dark:text-accent-300 ring-1 ring-accent-500/20' : 'bg-white dark:bg-surface-800 border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'}`}>• Unordered</button>
+                                <button onClick={() => onChange({ ...section, ordered: true })} className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border shadow-sm active:scale-[0.97] ${section.ordered ? 'bg-accent-50 border-accent-500 text-accent-700 dark:bg-accent-950/30 dark:border-accent-400 dark:text-accent-300 ring-1 ring-accent-500/20' : 'bg-white dark:bg-surface-800 border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'}`}>1. Ordered</button>
                             </div>
                         </div>
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className={labelClass.replace('mb-1.5', '')}>List Items</label>
-                                <button
-                                    onClick={addListItem}
-                                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Plus className="w-3.5 h-3.5" /> Add
-                                </button>
+                                <button onClick={addListItem} className="px-3 py-1.5 text-xs bg-accent-50 text-accent-600 dark:bg-accent-950/30 dark:text-accent-400 hover:bg-accent-100 dark:hover:bg-accent-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors active:scale-95"><Plus className="w-3.5 h-3.5" /> Add</button>
                             </div>
                             <div className="space-y-2.5">
                                 {section.items.map((item, index) => (
                                     <div key={index} className="flex gap-2 items-center group">
-                                        <span className="flex-none flex items-center justify-center w-6 text-sm text-slate-400 dark:text-slate-500 font-medium">
-                                            {section.ordered ? `${index + 1}.` : '•'}
-                                        </span>
-                                        <input
-                                            type="text"
-                                            value={item}
-                                            onChange={(e) => updateListItem(index, e.target.value)}
-                                            className={`${inputClass} flex-1`}
-                                            placeholder={`Item ${index + 1}`}
-                                        />
-                                        <button
-                                            onClick={() => removeListItem(index)}
-                                            className="flex-none p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                            title="Remove item"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <span className="flex-none flex items-center justify-center w-6 text-sm text-surface-400 dark:text-surface-500 font-medium">{section.ordered ? `${index + 1}.` : '•'}</span>
+                                        <input type="text" value={item} onChange={(e) => updateListItem(index, e.target.value)} className={`${inputClass} flex-1`} placeholder={`Item ${index + 1}`} />
+                                        <button onClick={() => removeListItem(index)} className="flex-none p-2 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all opacity-0 group-hover:opacity-100 active:scale-90" title="Remove item"><Trash2 className="w-4 h-4" /></button>
                                     </div>
                                 ))}
                                 {section.items.length === 0 && (
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-center">
-                                        <p className="text-sm text-slate-400 dark:text-slate-500">
-                                            No items yet.
-                                        </p>
+                                    <div className="p-4 bg-surface-50 dark:bg-surface-900 rounded-xl border border-dashed border-surface-300 dark:border-surface-600 text-center">
+                                        <p className="text-sm text-surface-400 dark:text-surface-500">No items yet.</p>
                                     </div>
                                 )}
                             </div>
@@ -792,60 +581,29 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     </div>
                 )}
 
-                {/* Modern Table Editor */}
                 {section.type === 'table' && (
                     <div className="space-y-6">
-
-
                         <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Table Configuration</h4>
-                            <button
-                                onClick={() => setTableModalOpen(true)}
-                                className="text-xs flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1.5 rounded-lg transition-colors"
-                            >
-                                <Maximize2 className="w-3.5 h-3.5" />
-                                Expand Editor
-                            </button>
+                            <h4 className="text-sm font-medium text-surface-600 dark:text-surface-300">Table Configuration</h4>
+                            <button onClick={() => setTableModalOpen(true)} className="text-xs flex items-center gap-1.5 text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 font-medium bg-accent-50 dark:bg-accent-950/30 px-2.5 py-1.5 rounded-lg transition-colors active:scale-95"><Maximize2 className="w-3.5 h-3.5" />Expand Editor</button>
                         </div>
-
                         <TableDesigner section={section} onChange={onChange} />
-
-                        {/* Full Screen Table Modal */}
                         {tableModalOpen && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
-                                    {/* Modal Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                                <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in border border-surface-200 dark:border-surface-700">
+                                    <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-850">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
-                                                <Table className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                            </div>
+                                            <div className="p-2 bg-accent-100 dark:bg-accent-950/50 rounded-lg"><Table className="w-5 h-5 text-accent-600 dark:text-accent-400" /></div>
                                             <div>
-                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Table Editor</h3>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Advanced table data management</p>
+                                                <h3 className="font-display text-lg font-bold text-surface-900 dark:text-white">Table Editor</h3>
+                                                <p className="text-xs text-surface-400">Advanced table data management</p>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => setTableModalOpen(false)}
-                                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
+                                        <button onClick={() => setTableModalOpen(false)} className="p-2 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg text-surface-400 transition-colors active:scale-95"><X className="w-5 h-5" /></button>
                                     </div>
-
-                                    {/* Modal Content */}
-                                    <div className="flex-1 overflow-hidden p-6 bg-white dark:bg-slate-800">
-                                        <TableDesigner section={section} onChange={onChange} isModal={true} />
-                                    </div>
-
-                                    {/* Modal Footer */}
-                                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
-                                        <button
-                                            onClick={() => setTableModalOpen(false)}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm"
-                                        >
-                                            Done Editing
-                                        </button>
+                                    <div className="flex-1 overflow-hidden p-6 bg-white dark:bg-surface-800"><TableDesigner section={section} onChange={onChange} isModal={true} /></div>
+                                    <div className="px-6 py-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-850 flex justify-end">
+                                        <button onClick={() => setTableModalOpen(false)} className="px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm active:scale-95">Done Editing</button>
                                     </div>
                                 </div>
                             </div>
@@ -853,53 +611,25 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                     </div>
                 )}
 
-                {/* Divider - no properties needed */}
                 {section.type === 'divider' && (
                     <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
-                        <div className="w-full text-slate-300 dark:text-slate-600 mb-4 flex items-center gap-4">
+                        <div className="w-full text-surface-300 dark:text-surface-600 mb-4 flex items-center gap-4">
                             <span className="h-px bg-current flex-1"></span>
                             <Minus className="w-6 h-6" />
                             <span className="h-px bg-current flex-1"></span>
                         </div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                            Horizontal Divider
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                            No configuration needed
-                        </p>
+                        <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Horizontal Divider</p>
+                        <p className="text-xs text-surface-400 dark:text-surface-500 mt-1">No configuration needed</p>
                     </div>
                 )}
 
-                {/* YouTube */}
                 {section.type === 'youtube' && (
                     <div className="space-y-4">
-                        <div>
-                            <label className={labelClass}>Video ID</label>
-                            <input
-                                type="text"
-                                value={section.videoId}
-                                onChange={(e) => onChange({ ...section, videoId: e.target.value })}
-                                className={inputClass}
-                                placeholder="e.g. iDqrgjyv09A"
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClass}>Video Title</label>
-                            <input
-                                type="text"
-                                value={section.title}
-                                onChange={(e) => onChange({ ...section, title: e.target.value })}
-                                className={inputClass}
-                                placeholder="Enter video title..."
-                            />
-                        </div>
+                        <div><label className={labelClass}>Video ID</label><input type="text" value={section.videoId} onChange={(e) => onChange({ ...section, videoId: e.target.value })} className={inputClass} placeholder="e.g. iDqrgjyv09A" /></div>
+                        <div><label className={labelClass}>Video Title</label><input type="text" value={section.title} onChange={(e) => onChange({ ...section, title: e.target.value })} className={inputClass} placeholder="Enter video title..." /></div>
                         <div>
                             <label className={labelClass}>Poster Quality (optional)</label>
-                            <select
-                                value={section.posterQuality || ''}
-                                onChange={(e) => onChange({ ...section, posterQuality: (e.target.value || undefined) as any })}
-                                className={inputClass}
-                            >
+                            <select value={section.posterQuality || ''} onChange={(e) => onChange({ ...section, posterQuality: (e.target.value || undefined) as any })} className={inputClass}>
                                 <option value="">Default</option>
                                 <option value="mqdefault">Medium</option>
                                 <option value="hqdefault">High</option>
@@ -909,7 +639,6 @@ function PropertiesPanel({ section, onChange }: { section: ContentSection | null
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );
@@ -919,10 +648,8 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const [showSidebar, setShowSidebar] = useState(false);
     const [showProperties, setShowProperties] = useState(false);
     const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
-    const isDark = useDarkMode();
-    const scrollbarStyle = getScrollbarStyle(isDark);
+    const [newSectionId, setNewSectionId] = useState<string | null>(null);
 
-    // Migration: Ensure all sections have IDs
     useEffect(() => {
         const hasMissingIds = sections.some(s => !s.id);
         if (hasMissingIds) {
@@ -953,6 +680,8 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         const newSection = createSection(type);
         setSections([...sections, newSection]);
         onSelect(newSection.id);
+        setNewSectionId(newSection.id);
+        setTimeout(() => setNewSectionId(null), 400);
     };
 
     const updateSection = (id: string, updated: ContentSection) => {
@@ -969,10 +698,12 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
     const duplicateSection = (index: number) => {
         const newSections = [...sections];
         const sectionToCopy = JSON.parse(JSON.stringify(newSections[index]));
-        sectionToCopy.id = crypto.randomUUID(); // Generate new ID for copy
+        sectionToCopy.id = crypto.randomUUID();
         newSections.splice(index + 1, 0, sectionToCopy);
         setSections(newSections);
         onSelect(sectionToCopy.id);
+        setNewSectionId(sectionToCopy.id);
+        setTimeout(() => setNewSectionId(null), 400);
     };
 
     const moveUp = (index: number) => {
@@ -989,27 +720,17 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         setSections(newSections);
     };
 
-    // Fix selectedSection derivation
     const selectedSection = sections.find(s => s.id === selectedId) || null;
-
     const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 8,
-            },
-        }),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
     const handleDragEnd = (event: any) => {
         const { active, over } = event;
-
         if (active.id !== over?.id) {
             const oldIndex = sections.findIndex((s) => s.id === active.id);
             const newIndex = sections.findIndex((s) => s.id === over?.id);
-
             if (oldIndex !== -1 && newIndex !== -1) {
                 setSections(arrayMove(sections, oldIndex, newIndex));
             }
@@ -1021,47 +742,35 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
         setShowSidebar(false);
     };
 
+    const renderSidebarContent = (onAdd: (type: string) => void) => (
+        <>
+            {SIDEBAR_CATEGORIES.map((category) => (
+                <div key={category.label} className="mb-4">
+                    <h3 className="px-1 mb-2 text-[11px] font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500">{category.label}</h3>
+                    <div className="space-y-1.5">
+                        {category.items.map((item) => (
+                            <SidebarItem key={item.type} icon={item.icon} label={item.label} onClick={() => onAdd(item.type)} />
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </>
+    );
+
     return (
-        <div className="flex h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
-            {/* Delete Confirmation Dialog */}
-            <ConfirmDialog
-                isOpen={sectionToDelete !== null}
-                onClose={() => setSectionToDelete(null)}
-                onConfirm={confirmDelete}
-                title="Delete Section"
-                message="Are you sure you want to delete this section? This action cannot be undone."
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="danger"
-                size="sm"
-            />
+        <div className="flex h-full bg-surface-50 dark:bg-surface-900 overflow-hidden relative theme-transition">
+            <ConfirmDialog isOpen={sectionToDelete !== null} onClose={() => setSectionToDelete(null)} onConfirm={confirmDelete} title="Delete Section" message="Are you sure you want to delete this section? This action cannot be undone." confirmText="Delete" cancelText="Cancel" variant="danger" size="sm" />
 
             {/* Mobile Sidebar Overlay */}
             {showSidebar && (
                 <div className="lg:hidden fixed inset-0 z-40">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowSidebar(false)} />
-                    <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-800 shadow-xl flex flex-col animate-in slide-in-from-left duration-200">
-                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                                Components
-                            </h2>
-                            <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                                <X className="w-5 h-5 text-slate-500" />
-                            </button>
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSidebar(false)} />
+                    <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-surface-800 shadow-xl flex flex-col animate-slide-in-left">
+                        <div className="px-4 py-3 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+                            <h2 className="font-display text-sm font-bold text-surface-600 dark:text-surface-300 uppercase tracking-wide">Components</h2>
+                            <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded active:scale-90"><X className="w-5 h-5 text-surface-400" /></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                            <SidebarItem icon={Type} label="Text" onClick={() => handleAddSection('text')} />
-                            <SidebarItem icon={Heading1} label="Heading" onClick={() => handleAddSection('heading')} />
-                            <SidebarItem icon={ImageIcon} label="Image" onClick={() => handleAddSection('image')} />
-                            <SidebarItem icon={Code} label="Code Block" onClick={() => handleAddSection('code')} />
-                            <SidebarItem icon={Quote} label="Quote" onClick={() => handleAddSection('quote')} />
-                            <SidebarItem icon={List} label="List" onClick={() => handleAddSection('list')} />
-                            <SidebarItem icon={Table} label="Table" onClick={() => handleAddSection('table')} />
-                            <SidebarItem icon={AlertCircle} label="Alert" onClick={() => handleAddSection('alert')} />
-                            <SidebarItem icon={LinkIcon} label="Link" onClick={() => handleAddSection('link')} />
-                            <SidebarItem icon={Youtube} label="YouTube" onClick={() => handleAddSection('youtube')} />
-                            <SidebarItem icon={Minus} label="Divider" onClick={() => handleAddSection('divider')} />
-                        </div>
+                        <div className="flex-1 overflow-y-auto p-3">{renderSidebarContent(handleAddSection)}</div>
                     </div>
                 </div>
             )}
@@ -1069,116 +778,63 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             {/* Mobile Properties Panel Overlay */}
             {showProperties && selectedSection && (
                 <div className="lg:hidden fixed inset-0 z-40">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowProperties(false)} />
-                    <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[90vw] bg-white dark:bg-slate-800 shadow-xl flex flex-col animate-in slide-in-from-right duration-200">
-                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                                Properties
-                            </h2>
-                            <button onClick={() => setShowProperties(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                                <X className="w-5 h-5 text-slate-500" />
-                            </button>
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowProperties(false)} />
+                    <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[90vw] bg-white dark:bg-surface-800 shadow-xl flex flex-col animate-slide-in-right">
+                        <div className="px-4 py-3 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+                            <h2 className="font-display text-sm font-bold text-surface-600 dark:text-surface-300 uppercase tracking-wide">Properties</h2>
+                            <button onClick={() => setShowProperties(false)} className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded active:scale-90"><X className="w-5 h-5 text-surface-400" /></button>
                         </div>
-                        <PropertiesPanel
-                            section={selectedSection}
-                            onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)}
-                        />
+                        <PropertiesPanel section={selectedSection} onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)} />
                     </div>
                 </div>
             )}
 
             {/* Desktop Sidebar */}
-            <div className="hidden lg:flex w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col">
-                <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                        Components
-                    </h2>
+            <div className="hidden lg:flex w-64 bg-white dark:bg-surface-800 border-r border-surface-200 dark:border-surface-700 flex-col theme-transition">
+                <div className="px-4 py-3 border-b border-surface-200 dark:border-surface-700">
+                    <h2 className="font-display text-sm font-bold text-surface-600 dark:text-surface-300 uppercase tracking-wide">Components</h2>
                 </div>
-                <div
-                    className="flex-1 overflow-y-auto p-3 space-y-2"
-                    style={scrollbarStyle}
-                >
-                    <SidebarItem icon={Type} label="Text" onClick={() => addSection('text')} />
-                    <SidebarItem icon={Heading1} label="Heading" onClick={() => addSection('heading')} />
-                    <SidebarItem icon={ImageIcon} label="Image" onClick={() => addSection('image')} />
-                    <SidebarItem icon={Code} label="Code Block" onClick={() => addSection('code')} />
-                    <SidebarItem icon={Quote} label="Quote" onClick={() => addSection('quote')} />
-                    <SidebarItem icon={List} label="List" onClick={() => addSection('list')} />
-                    <SidebarItem icon={Table} label="Table" onClick={() => addSection('table')} />
-                    <SidebarItem icon={AlertCircle} label="Alert" onClick={() => addSection('alert')} />
-                    <SidebarItem icon={LinkIcon} label="Link" onClick={() => addSection('link')} />
-                    <SidebarItem icon={Youtube} label="YouTube" onClick={() => addSection('youtube')} />
-                    <SidebarItem icon={Minus} label="Divider" onClick={() => addSection('divider')} />
-                </div>
+                <div className="flex-1 overflow-y-auto p-3">{renderSidebarContent(addSection)}</div>
             </div>
 
             {/* Canvas */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 theme-transition">
                     <div className="flex items-center justify-between gap-2">
-                        {/* Mobile Toggle Buttons */}
-                        <button
-                            onClick={() => setShowSidebar(true)}
-                            className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300"
-                            title="Add Component"
-                        >
-                            <PanelLeftOpen className="w-4 h-4" />
-                        </button>
-
+                        <button onClick={() => setShowSidebar(true)} className="lg:hidden p-2 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg border border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 active:scale-95" title="Add Component"><PanelLeftOpen className="w-4 h-4" /></button>
                         <div className="flex items-center gap-2 flex-1 lg:flex-none">
-                            <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide hidden sm:block">
-                                Canvas
-                            </h2>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
-                                {sections.length} {sections.length === 1 ? 'item' : 'items'}
-                            </span>
+                            <h2 className="font-display text-sm font-bold text-surface-600 dark:text-surface-300 uppercase tracking-wide hidden sm:block">Canvas</h2>
+                            <span className="text-xs text-surface-400 dark:text-surface-500 bg-surface-100 dark:bg-surface-700 px-2 py-0.5 rounded font-medium">{sections.length} {sections.length === 1 ? 'item' : 'items'}</span>
                         </div>
-
-                        <button
-                            onClick={() => setShowProperties(true)}
-                            className={`lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 ${selectedSection ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700' : ''}`}
-                            title="Properties"
-                        >
-                            <PanelRightOpen className="w-4 h-4" />
-                        </button>
+                        <button onClick={() => setShowProperties(true)} className={`lg:hidden p-2 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg border border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 active:scale-95 ${selectedSection ? 'bg-accent-50 dark:bg-accent-950/30 border-accent-300 dark:border-accent-700' : ''}`} title="Properties"><PanelRightOpen className="w-4 h-4" /></button>
                     </div>
                 </div>
-                <div
-                    className="flex-1 overflow-y-auto p-3 sm:p-6"
-                    style={scrollbarStyle}
-                >
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6">
                     <div className="max-w-3xl mx-auto space-y-3">
                         {sections.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl m-4 bg-slate-100/50 dark:bg-slate-800/30">
-                                <Plus className="w-12 h-12 mb-4 opacity-50" />
-                                <p className="text-lg font-medium">Start building your post</p>
-                                <p className="text-sm opacity-70">Select components from the sidebar</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="relative mb-6">
+                                    <div className="w-20 h-20 rounded-2xl bg-accent-50 dark:bg-accent-950 flex items-center justify-center">
+                                        <FileText className="w-10 h-10 text-accent-400" />
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 flex items-center justify-center shadow-sm animate-pulse-soft">
+                                        <Plus className="w-4 h-4 text-surface-400" />
+                                    </div>
+                                </div>
+                                <h3 className="font-display font-bold text-lg text-surface-900 dark:text-surface-50 mb-2">Start building your post</h3>
+                                <p className="text-sm text-surface-400 dark:text-surface-500 max-w-[260px] mb-6">Pick a component from the sidebar to add your first content block</p>
+                                <div className="flex gap-2">
+                                    {['text', 'heading', 'image', 'code'].map(type => (
+                                        <button key={type} onClick={() => addSection(type)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-500 dark:text-surface-400 hover:bg-accent-50 hover:text-accent-600 dark:hover:bg-accent-950 dark:hover:text-accent-400 transition-all border border-surface-200 dark:border-surface-700 active:scale-95">{type.charAt(0).toUpperCase() + type.slice(1)}</button>
+                                    ))}
+                                </div>
                             </div>
                         ) : (
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <SortableContext
-                                    items={sections}
-                                    strategy={verticalListSortingStrategy}
-                                >
+                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                <SortableContext items={sections} strategy={verticalListSortingStrategy}>
                                     <div className="max-w-3xl mx-auto space-y-4 pb-20">
                                         {sections.map((section, index) => (
-                                            <SortableCanvasItem
-                                                key={section.id}
-                                                id={section.id}
-                                                section={section}
-                                                onDelete={() => setSectionToDelete(index)}
-                                                onDuplicate={() => duplicateSection(index)}
-                                                onSelect={() => onSelect(section.id)}
-                                                onMoveUp={() => moveUp(index)}
-                                                onMoveDown={() => moveDown(index)}
-                                                isSelected={selectedId === section.id}
-                                                isFirst={index === 0}
-                                                isLast={index === sections.length - 1}
-                                            />
+                                            <SortableCanvasItem key={section.id} id={section.id} section={section} onDelete={() => setSectionToDelete(index)} onDuplicate={() => duplicateSection(index)} onSelect={() => onSelect(section.id)} onMoveUp={() => moveUp(index)} onMoveDown={() => moveDown(index)} isSelected={selectedId === section.id} isFirst={index === 0} isLast={index === sections.length - 1} isNew={section.id === newSectionId} />
                                         ))}
                                     </div>
                                 </SortableContext>
@@ -1189,20 +845,17 @@ export default function Editor({ sections, setSections, onSelect, selectedId }: 
             </div>
 
             {/* Desktop Properties Panel */}
-            <div className="hidden lg:flex w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex-col">
+            <div className="hidden lg:flex w-96 bg-white dark:bg-surface-800 border-l border-surface-200 dark:border-surface-700 flex-col theme-transition">
                 {selectedSection ? (
-                    <PropertiesPanel
-                        section={selectedSection}
-                        onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)}
-                    />
+                    <PropertiesPanel section={selectedSection} onChange={(updated) => selectedSection && updateSection(selectedSection.id, updated)} />
                 ) : (
-                    <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 p-8 text-center">
+                    <div className="flex-1 flex items-center justify-center bg-surface-50 dark:bg-surface-900/50 p-8 text-center">
                         <div className="max-w-[200px]">
-                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm mb-4 mx-auto w-16 h-16 flex items-center justify-center border border-slate-100 dark:border-slate-700">
-                                <Settings className="w-8 h-8 text-indigo-500/50 dark:text-indigo-400/50" />
+                            <div className="p-4 bg-white dark:bg-surface-800 rounded-2xl shadow-sm mb-4 mx-auto w-16 h-16 flex items-center justify-center border border-surface-200 dark:border-surface-700">
+                                <Settings className="w-8 h-8 text-accent-400/50" />
                             </div>
-                            <p className="font-semibold text-slate-900 dark:text-white mb-1">Properties</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Select a component to configure it</p>
+                            <p className="font-display font-bold text-surface-900 dark:text-white mb-1">Properties</p>
+                            <p className="text-sm text-surface-400 dark:text-surface-500">Select a component to configure it</p>
                         </div>
                     </div>
                 )}
