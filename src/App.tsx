@@ -442,8 +442,8 @@ function App() {
               <div className="hidden sm:block w-px h-5 bg-surface-200 dark:bg-surface-700 mx-1" />
 
               {/* Auto-save Status */}
-              <div className="hidden sm:flex items-center gap-1.5 text-xs text-surface-400 px-1">
-                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-surface-400 px-1 w-[90px] md:w-[90px]">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
                   saveStatus === 'saving' ? 'bg-amber-400 animate-pulse' :
                   saveStatus === 'saved' ? 'bg-emerald-400' :
                   'bg-surface-300 dark:bg-surface-600 animate-pulse-soft'
