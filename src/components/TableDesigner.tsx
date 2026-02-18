@@ -1,8 +1,6 @@
 import { Fragment } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { ContentSection } from '../types/blog';
-import { useDarkMode, getScrollbarStyle } from '../hooks/useDarkMode';
-
 interface TableDesignerProps {
     section: ContentSection;
     onChange: (updated: ContentSection) => void;
@@ -10,8 +8,6 @@ interface TableDesignerProps {
 }
 
 export default function TableDesigner({ section, onChange, isModal = false }: TableDesignerProps) {
-    const isDark = useDarkMode();
-    const scrollbarStyle = getScrollbarStyle(isDark);
 
     if (section.type !== 'table') return null;
 
@@ -57,25 +53,24 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
         onChange({ ...section, rows: newRows });
     };
 
-    // Calculate grid height based on modal mode
     const containerClasses = isModal
-        ? "flex-1 overflow-hidden flex flex-col min-h-0 border border-slate-200 dark:border-slate-700 rounded-xl"
-        : "relative border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm";
+        ? "flex-1 overflow-hidden flex flex-col min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl"
+        : "relative border border-surface-200 dark:border-surface-700 rounded-xl overflow-hidden bg-white dark:bg-surface-900 shadow-sm";
 
     const scrollContainerClasses = isModal
-        ? "overflow-auto flex-1 custom-scrollbar p-6 bg-slate-50 dark:bg-slate-900/50"
+        ? "overflow-auto flex-1 custom-scrollbar p-6 bg-surface-50 dark:bg-surface-900/50"
         : "overflow-x-auto custom-scrollbar";
 
     return (
         <div className={isModal ? "space-y-4 h-full flex flex-col" : "space-y-6"}>
             {!isModal && (
                 <div>
-                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Table Caption</label>
+                    <label className="block text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-2">Table Caption</label>
                     <input
                         type="text"
                         value={section.caption || ''}
                         onChange={(e) => onChange({ ...section, caption: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-slate-300 dark:hover:border-slate-600 transition-all placeholder:text-slate-400"
+                        className="w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-sm text-surface-700 dark:text-surface-200 focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 hover:border-surface-300 dark:hover:border-surface-600 transition-all placeholder:text-surface-400"
                         placeholder="Table description..."
                     />
                 </div>
@@ -83,17 +78,17 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
 
             <div className={`flex flex-col gap-3 ${isModal ? 'flex-1 min-h-0' : 'h-full'}`}>
                 <div className="flex items-center justify-between flex-none">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Table Data</span>
+                    <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider">Table Data</span>
                     <div className="flex gap-2">
                         <button
                             onClick={addTableColumn}
-                            className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-1.5 text-xs bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400 hover:bg-accent-100 dark:hover:bg-accent-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors active:scale-95"
                         >
                             <Plus className="w-3.5 h-3.5" /> Col
                         </button>
                         <button
                             onClick={addTableRow}
-                            className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-1.5 text-xs bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400 hover:bg-accent-100 dark:hover:bg-accent-900/50 rounded-lg font-medium flex items-center gap-1.5 transition-colors active:scale-95"
                         >
                             <Plus className="w-3.5 h-3.5" /> Row
                         </button>
@@ -104,7 +99,6 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                 <div className={containerClasses}>
                     <div
                         className={scrollContainerClasses}
-                        style={scrollbarStyle}
                     >
                         <div className={isModal ? "min-w-max mx-auto" : "min-w-max p-4"}>
                             <div
@@ -114,20 +108,20 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                                 }}
                             >
                                 {/* Header Row */}
-                                <div className="flex items-center justify-center font-mono text-xs text-slate-400">#</div>
+                                <div className="flex items-center justify-center font-mono text-xs text-surface-400">#</div>
                                 {section.headers.map((header, index) => (
                                     <div key={`h-${index}`} className="relative group">
                                         <input
                                             type="text"
                                             value={header}
                                             onChange={(e) => updateTableHeader(index, e.target.value)}
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal"
+                                            className="w-full px-3 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-sm font-semibold text-surface-700 dark:text-surface-200 focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 transition-all placeholder:font-normal"
                                             placeholder={`Header ${index + 1}`}
                                         />
                                         {section.headers.length > 1 && (
                                             <button
                                                 onClick={() => removeTableColumn(index)}
-                                                className="absolute -top-2 -right-2 p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                className="absolute -top-2 -right-2 p-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-400 hover:text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
                                                 title="Remove Column"
                                             >
                                                 <X className="w-3 h-3" />
@@ -141,7 +135,7 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                                 {section.rows.map((row, rowIndex) => (
                                     <Fragment key={rowIndex}>
                                         {/* Row Index */}
-                                        <div className="flex items-center justify-center font-mono text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                        <div className="flex items-center justify-center font-mono text-xs text-surface-400 bg-surface-50 dark:bg-surface-800/50 rounded-lg">
                                             {rowIndex + 1}
                                         </div>
 
@@ -152,7 +146,7 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                                                 type="text"
                                                 value={cell}
                                                 onChange={(e) => updateTableCell(rowIndex, colIndex, e.target.value)}
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                className="w-full px-3 py-2 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-sm text-surface-600 dark:text-surface-300 focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 transition-all"
                                                 placeholder="..."
                                             />
                                         ))}
@@ -161,7 +155,7 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                                         <div className="flex items-center justify-center">
                                             <button
                                                 onClick={() => removeTableRow(rowIndex)}
-                                                className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                className="flex items-center justify-center w-8 h-8 rounded-lg text-surface-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors active:scale-95"
                                                 title="Delete Row"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -174,7 +168,7 @@ export default function TableDesigner({ section, onChange, isModal = false }: Ta
                     </div>
                 </div>
                 {!isModal && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
+                    <p className="text-xs text-surface-400 dark:text-surface-500 px-1">
                         Headers are editable. Scroll horizontally for more columns.
                     </p>
                 )}

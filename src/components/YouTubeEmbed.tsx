@@ -30,7 +30,7 @@ export default function YouTubeEmbed({
     return (
         <div
             ref={ref}
-            className={`relative w-full aspect-video overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 shadow-lg ${className}`}
+            className={`relative w-full aspect-video overflow-hidden rounded-xl bg-surface-100 dark:bg-surface-800 shadow-elevated ${className}`}
         >
             {!isLoaded ? (
                 <div className="group relative h-full w-full cursor-pointer" onClick={handlePlayClick}>
@@ -50,7 +50,7 @@ export default function YouTubeEmbed({
                     {/* Play Button */}
                     <button
                         type="button"
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 p-4 text-white shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500/50"
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 p-4 text-white shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500/50 active:scale-95"
                         aria-label={`Play ${title}`}
                     >
                         <svg

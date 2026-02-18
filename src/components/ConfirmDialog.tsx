@@ -57,7 +57,7 @@ const ConfirmDialog = ({
   }[size];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
@@ -65,11 +65,11 @@ const ConfirmDialog = ({
       />
 
       {/* Dialog */}
-      <div className={`relative w-full ${maxWidthClass} bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200`}>
+      <div className={`relative w-full ${maxWidthClass} bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200 dark:border-surface-700 animate-scale-in`}>
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors active:scale-95"
           aria-label="Close dialog"
         >
           <X className="w-5 h-5" />
@@ -83,12 +83,12 @@ const ConfirmDialog = ({
           </div>
 
           {/* Title */}
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+          <h2 className="text-xl font-display font-semibold text-surface-900 dark:text-white mb-2">
             {title}
           </h2>
 
           {/* Message */}
-          <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+          <p className="text-surface-600 dark:text-surface-300 mb-6 leading-relaxed">
             {message}
           </p>
 
@@ -96,13 +96,13 @@ const ConfirmDialog = ({
           <div className="flex items-center gap-3">
             <button
               onClick={handleConfirm}
-              className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${styles.confirmButton}`}
+              className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-colors active:scale-[0.97] ${styles.confirmButton}`}
             >
               {confirmText}
             </button>
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              className="flex-1 px-4 py-2.5 rounded-xl font-medium bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors active:scale-[0.97]"
             >
               {cancelText}
             </button>
